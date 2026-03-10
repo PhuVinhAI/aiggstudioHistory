@@ -1,33 +1,67 @@
 import { createRoot } from 'react-dom/client';
 import { Download } from 'lucide-react';
-import { scrapeChatHistory } from '../utils/scraper';
 import { exportChat } from '../utils/export';
+import { extractPromptIdFromUrl, fetchPromptDataFromDrive, convertPromptDataToChatTurns } from '../utils/api';
 import type { Vault, ExportConfig } from '../types';
-import './styles.css';
+
+// Inject styles
+const style = document.createElement('style');
+style.textContent = `
+  .export-button-container {
+    display: inline-flex;
+    margin: 0 8px;
+  }
+
+  .export-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .export-button:hover {
+    background: #1557b0;
+  }
+
+  .export-button:active {
+    background: #0d47a1;
+  }
+`;
+document.head.appendChild(style);
 
 function injectExportButton() {
-  // Wait for the page to load
   const observer = new MutationObserver(() => {
-    const header = document.querySelector('header');
-    if (!header) return;
+    const chatSession = document.querySelector('ms-chat-session');
+    if (!chatSession) return;
 
-    // Check if button already exists
     if (document.getElementById('ai-studio-export-btn')) return;
 
-    // Create button container
+    let targetContainer = document.querySelector('header');
+    
+    if (!targetContainer) {
+      targetContainer = document.querySelector('[role="toolbar"]');
+    }
+    
+    if (!targetContainer) {
+      createFloatingButton();
+      observer.disconnect();
+      return;
+    }
+
     const buttonContainer = document.createElement('div');
     buttonContainer.id = 'ai-studio-export-btn';
     buttonContainer.className = 'export-button-container';
 
-    // Insert before share button or at the end
-    const shareButton = header.querySelector('[aria-label*="Share"]');
-    if (shareButton?.parentElement) {
-      shareButton.parentElement.insertBefore(buttonContainer, shareButton);
-    } else {
-      header.appendChild(buttonContainer);
-    }
+    targetContainer.appendChild(buttonContainer);
 
-    // Render React button
     const root = createRoot(buttonContainer);
     root.render(<ExportButton />);
 
@@ -40,29 +74,57 @@ function injectExportButton() {
   });
 }
 
+function createFloatingButton() {
+  const buttonContainer = document.createElement('div');
+  buttonContainer.id = 'ai-studio-export-btn';
+  buttonContainer.className = 'export-button-container';
+  buttonContainer.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+  `;
+  
+  document.body.appendChild(buttonContainer);
+  
+  const root = createRoot(buttonContainer);
+  root.render(<ExportButton />);
+}
+
 function ExportButton() {
   const handleExport = async () => {
     try {
-      // Get vault from storage
+      const promptId = extractPromptIdFromUrl(window.location.href);
+      if (!promptId) {
+        alert('Không tìm thấy ID prompt trong URL');
+        return;
+      }
+
+      const promptData = await fetchPromptDataFromDrive(promptId);
+      if (!promptData) {
+        alert('Không thể tải dữ liệu từ Drive');
+        return;
+      }
+
+      // Get vault and config
       const result = await chrome.storage.local.get('vault');
       const vault: Vault = (result.vault as Vault) || {};
 
-      // Get export config from storage
       const configResult = await chrome.storage.local.get(['includeImages', 'includePDFs']);
       const config: ExportConfig = {
         includeImages: configResult.includeImages !== false,
         includePDFs: configResult.includePDFs !== false
       };
 
-      // Scrape chat history
-      const chatTurns = scrapeChatHistory();
-
+      // Convert to chat turns for markdown export
+      const chatTurns = convertPromptDataToChatTurns(promptData);
+      
       if (chatTurns.length === 0) {
-        alert('Không tìm thấy lịch sử chat để xuất');
+        alert('Không tìm thấy lịch sử chat');
         return;
       }
 
-      // Export
+      // Export markdown only
       await exportChat(chatTurns, vault, config);
       
       console.log('Export completed successfully');
@@ -76,7 +138,7 @@ function ExportButton() {
     <button
       onClick={handleExport}
       className="export-button"
-      title="Export Chat History"
+      title="Export Chat"
     >
       <Download size={20} />
       <span>Export</span>
@@ -84,5 +146,4 @@ function ExportButton() {
   );
 }
 
-// Initialize
 injectExportButton();

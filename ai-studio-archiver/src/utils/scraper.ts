@@ -11,19 +11,30 @@ export function scrapeChatHistory(): ChatTurn[] {
     const isUser = container.classList.contains('user');
     const role = isUser ? 'user' : 'model';
 
-    // Extract text content
-    const textChunks = turnEl.querySelectorAll('ms-text-chunk');
-    let content = '';
-    textChunks.forEach((chunk) => {
-      content += chunk.textContent?.trim() + '\n\n';
-    });
-
-    // Extract thinking process (Gemini 2.0)
+    // Extract thinking process first (Gemini 2.0)
     let thoughts = '';
     const thoughtChunk = turnEl.querySelector('ms-thought-chunk');
     if (thoughtChunk) {
-      thoughts = thoughtChunk.textContent?.trim() || '';
+      // Get only the text chunks inside thought chunk
+      const thoughtTextChunks = thoughtChunk.querySelectorAll('ms-text-chunk');
+      thoughtTextChunks.forEach((chunk) => {
+        thoughts += chunk.textContent?.trim() + '\n\n';
+      });
+      thoughts = thoughts.trim();
     }
+
+    // Extract text content (excluding thought chunks)
+    const promptChunks = turnEl.querySelectorAll('ms-prompt-chunk');
+    let content = '';
+    promptChunks.forEach((promptChunk) => {
+      // Skip if this is inside a thought chunk
+      if (promptChunk.closest('ms-thought-chunk')) return;
+      
+      const textChunks = promptChunk.querySelectorAll('ms-text-chunk');
+      textChunks.forEach((chunk) => {
+        content += chunk.textContent?.trim() + '\n\n';
+      });
+    });
 
     // Extract file attachments
     const attachments: string[] = [];

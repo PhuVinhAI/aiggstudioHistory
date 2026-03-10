@@ -4,9 +4,7 @@
   "version": "1.0.0",
   "description": "Export Google AI Studio chat history with attachments",
   "permissions": [
-    "storage",
-    "debugger",
-    "activeTab"
+    "storage"
   ],
   "host_permissions": [
     "https://aistudio.google.com/*",
@@ -19,8 +17,7 @@
   "content_scripts": [
     {
       "matches": ["https://aistudio.google.com/*"],
-      "js": ["src/content/index.tsx"],
-      "css": ["src/content/styles.css"]
+      "js": ["src/content/index.tsx"]
     }
   ],
   "action": {

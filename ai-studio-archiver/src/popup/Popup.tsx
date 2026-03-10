@@ -112,7 +112,7 @@ export default function Popup() {
       </div>
 
       <footer className="popup-footer">
-        <p>Mở AI Studio và nhấn nút Export để tải xuống</p>
+        <p>Mở AI Studio và nhấn Export để tải xuống</p>
       </footer>
     </div>
   );

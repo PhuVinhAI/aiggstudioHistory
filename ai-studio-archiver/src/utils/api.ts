@@ -1,16 +1,19 @@
 import type { PromptData, ChatTurn } from '../types';
 
-export async function fetchPromptDataFromDrive(promptId: string): Promise<PromptData | null> {
+export async function fetchPromptDataFromDrive(promptId: string, token?: string): Promise<PromptData | null> {
   try {
-    const url = `https://drive.usercontent.google.com/download?id=${promptId}&export=download&confirm=t`;
-    const response = await fetch(url);
+    // Use background script to avoid CORS
+    const response = await chrome.runtime.sendMessage({
+      action: 'fetchPromptData',
+      promptId,
+      token
+    });
 
-    if (!response.ok) {
-      throw new Error(`Drive download failed: ${response.status}`);
+    if (!response.success) {
+      throw new Error(response.error);
     }
 
-    const data = await response.json();
-    return data as PromptData;
+    return response.data as PromptData;
   } catch (error) {
     console.error('Failed to fetch prompt data from Drive:', error);
     return null;

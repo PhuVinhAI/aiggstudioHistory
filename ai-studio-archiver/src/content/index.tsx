@@ -100,9 +100,18 @@ function ExportButton() {
         return;
       }
 
-      const promptData = await fetchPromptDataFromDrive(promptId);
+      // Get token from storage
+      const tokenResult = await chrome.storage.local.get('driveToken');
+      const token = tokenResult.driveToken as string | undefined;
+
+      const promptData = await fetchPromptDataFromDrive(promptId, token);
       if (!promptData) {
-        alert('Không thể tải dữ liệu từ Drive');
+        const needToken = !token;
+        if (needToken) {
+          alert('Không thể tải dữ liệu từ Drive.\n\nFile có thể cần token. Vui lòng:\n1. Mở popup extension\n2. Nhập Drive API token\n3. Thử lại');
+        } else {
+          alert('Không thể tải dữ liệu từ Drive.\n\nToken có thể đã hết hạn hoặc không có quyền truy cập.');
+        }
         return;
       }
 

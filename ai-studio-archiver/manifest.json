@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "AI Studio Chat Archiver",
+  "version": "1.0.0",
+  "description": "Export Google AI Studio chat history with attachments",
+  "permissions": [
+    "storage",
+    "debugger",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://aistudio.google.com/*",
+    "https://content.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://aistudio.google.com/*"],
+      "js": ["src/content/index.tsx"],
+      "css": ["src/content/styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/index.html"
+  }
+}

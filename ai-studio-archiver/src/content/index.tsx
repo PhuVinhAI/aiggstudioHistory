@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { Download } from 'lucide-react';
 import { exportChat } from '../utils/export';
 import { extractPromptIdFromUrl, fetchPromptDataFromDrive, convertPromptDataToChatTurns } from '../utils/api';
-import type { Vault, ExportConfig } from '../types';
+import type { ExportConfig } from '../types';
 
 // Inject styles
 const style = document.createElement('style');
@@ -115,10 +115,7 @@ function ExportButton() {
         return;
       }
 
-      // Get vault and config
-      const result = await chrome.storage.local.get('vault');
-      const vault: Vault = (result.vault as Vault) || {};
-
+      // Get config
       const configResult = await chrome.storage.local.get(['includeImages', 'includePDFs']);
       const config: ExportConfig = {
         includeImages: configResult.includeImages !== false,
@@ -133,8 +130,8 @@ function ExportButton() {
         return;
       }
 
-      // Export markdown only
-      await exportChat(chatTurns, vault, config);
+      // Export markdown with Drive files
+      await exportChat(chatTurns, config, token);
       
       console.log('Export completed successfully');
     } catch (error) {

@@ -20,7 +20,7 @@ export interface ChatTurn {
 }
 
 export interface PromptChunk {
-  text: string;
+  text?: string;
   role: string;
   tokenCount?: number;
   isThought?: boolean;
@@ -29,6 +29,16 @@ export interface PromptChunk {
     text: string;
     thought?: boolean;
   }>;
+  inlineFile?: {
+    mimeType: string;
+    data: string; // base64
+  };
+  driveDocument?: {
+    id: string;
+  };
+  driveImage?: {
+    id: string;
+  };
 }
 
 export interface PromptData {

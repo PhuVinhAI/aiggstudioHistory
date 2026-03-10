@@ -70,11 +70,38 @@ export function convertPromptDataToChatTurns(data: PromptData): ChatTurn[] {
   const chunks = data.chunkedPrompt.chunks;
 
   for (const chunk of chunks) {
-    if (!chunk.text && !chunk.parts) continue;
+    // Skip empty chunks
+    if (!chunk.text && !chunk.parts && !chunk.inlineFile && !chunk.driveDocument && !chunk.driveImage) continue;
 
     let content = '';
     let thoughts = '';
+    const attachments: string[] = [];
 
+    // Handle inline file
+    if (chunk.inlineFile) {
+      const filename = `inline_file.${chunk.inlineFile.mimeType.split('/')[1] || 'txt'}`;
+      attachments.push(filename);
+      // Decode base64 content if it's text
+      if (chunk.inlineFile.mimeType.startsWith('text/')) {
+        try {
+          content = atob(chunk.inlineFile.data);
+        } catch {
+          content = `[File: ${filename}]`;
+        }
+      }
+    }
+
+    // Handle Drive document
+    if (chunk.driveDocument) {
+      attachments.push(`drive_doc_${chunk.driveDocument.id}`);
+    }
+
+    // Handle Drive image
+    if (chunk.driveImage) {
+      attachments.push(`drive_image_${chunk.driveImage.id}`);
+    }
+
+    // Handle text and thoughts
     if (chunk.parts) {
       for (const part of chunk.parts) {
         if (part.thought) {
@@ -91,11 +118,12 @@ export function convertPromptDataToChatTurns(data: PromptData): ChatTurn[] {
       }
     }
 
-    if (content || thoughts) {
+    if (content || thoughts || attachments.length > 0) {
       chatTurns.push({
         role: chunk.role === 'user' ? 'user' : 'model',
         content: content.trim(),
-        thoughts: thoughts.trim() || undefined
+        thoughts: thoughts.trim() || undefined,
+        attachments: attachments.length > 0 ? attachments : undefined
       });
     }
   }

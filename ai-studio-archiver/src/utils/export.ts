@@ -1,29 +1,26 @@
 import JSZip from 'jszip';
-import type { ChatTurn, ExportConfig, Vault } from '../types';
+import type { ChatTurn, ExportConfig } from '../types';
 
 export async function exportChat(
   chatTurns: ChatTurn[],
-  vault: Vault,
-  config: ExportConfig
+  config: ExportConfig,
+  driveToken?: string
 ): Promise<void> {
-  const hasMedia = chatTurns.some(turn => 
-    turn.attachments?.some(filename => {
-      const data = vault[filename];
-      if (!data) return false;
-      const isImage = data.mimeType.startsWith('image/');
-      const isPDF = data.mimeType === 'application/pdf';
-      return (isImage && config.includeImages) || (isPDF && config.includePDFs);
-    })
+  // Check if we have any Drive files
+  const hasDriveFiles = chatTurns.some(turn => 
+    turn.attachments?.some(filename => 
+      filename.startsWith('drive_doc_') || filename.startsWith('drive_image_')
+    )
   );
 
-  if (hasMedia) {
-    await exportAsZip(chatTurns, vault, config);
+  if (hasDriveFiles && config.includeImages) {
+    await exportAsZip(chatTurns, config, driveToken);
   } else {
-    await exportAsMarkdown(chatTurns, vault);
+    await exportAsMarkdown(chatTurns);
   }
 }
 
-async function exportAsMarkdown(chatTurns: ChatTurn[], vault: Vault): Promise<void> {
+async function exportAsMarkdown(chatTurns: ChatTurn[]): Promise<void> {
   let markdown = `# Lịch sử chat: AI Studio\n\n`;
   markdown += `Xuất lúc: ${new Date().toLocaleString('vi-VN')}\n\n---\n\n`;
 
@@ -41,13 +38,12 @@ async function exportAsMarkdown(chatTurns: ChatTurn[], vault: Vault): Promise<vo
     if (turn.attachments && turn.attachments.length > 0) {
       markdown += `**Đính kèm:**\n`;
       for (const filename of turn.attachments) {
-        const data = vault[filename];
-        if (data && data.mimeType.startsWith('text/')) {
-          // Include text file content
-          const content = base64ToText(data.base64);
-          markdown += `\n### ${filename}\n\`\`\`\n${content}\n\`\`\`\n\n`;
+        if (filename.startsWith('drive_doc_') || filename.startsWith('drive_image_')) {
+          const driveId = filename.replace('drive_doc_', '').replace('drive_image_', '');
+          const type = filename.startsWith('drive_doc_') ? 'Document' : 'Image';
+          markdown += `- [${type} on Drive](https://drive.google.com/file/d/${driveId}/view)\n`;
         } else {
-          markdown += `- ${filename} (Không bao gồm trong bản tải này)\n`;
+          markdown += `- ${filename}\n`;
         }
       }
       markdown += `\n`;
@@ -61,8 +57,8 @@ async function exportAsMarkdown(chatTurns: ChatTurn[], vault: Vault): Promise<vo
 
 async function exportAsZip(
   chatTurns: ChatTurn[],
-  vault: Vault,
-  config: ExportConfig
+  config: ExportConfig,
+  driveToken?: string
 ): Promise<void> {
   const zip = new JSZip();
   
@@ -84,29 +80,38 @@ async function exportAsZip(
     if (turn.attachments && turn.attachments.length > 0) {
       markdown += `**Đính kèm:**\n`;
       for (const filename of turn.attachments) {
-        const data = vault[filename];
-        if (!data) {
-          markdown += `- ${filename} (Không tìm thấy)\n`;
-          continue;
-        }
-
-        const isImage = data.mimeType.startsWith('image/');
-        const isPDF = data.mimeType === 'application/pdf';
-        const isText = data.mimeType.startsWith('text/');
-
-        if (isImage && config.includeImages) {
-          const path = `assets/images/${filename}`;
-          zip.file(path, base64ToBlob(data.base64, data.mimeType));
-          markdown += `- ![${filename}](${path})\n`;
-        } else if (isPDF && config.includePDFs) {
-          const path = `assets/documents/${filename}`;
-          zip.file(path, base64ToBlob(data.base64, data.mimeType));
-          markdown += `- [${filename}](${path})\n`;
-        } else if (isText) {
-          const content = base64ToText(data.base64);
-          markdown += `\n### ${filename}\n\`\`\`\n${content}\n\`\`\`\n\n`;
+        if (filename.startsWith('drive_doc_')) {
+          const driveId = filename.replace('drive_doc_', '');
+          if (config.includePDFs) {
+            try {
+              const fileBlob = await downloadFromDrive(driveId, driveToken);
+              const path = `assets/documents/${driveId}.pdf`;
+              zip.file(path, fileBlob);
+              markdown += `- [Document](${path})\n`;
+            } catch (error) {
+              console.error('Failed to download document:', error);
+              markdown += `- [Document on Drive](https://drive.google.com/file/d/${driveId}/view)\n`;
+            }
+          } else {
+            markdown += `- [Document on Drive](https://drive.google.com/file/d/${driveId}/view)\n`;
+          }
+        } else if (filename.startsWith('drive_image_')) {
+          const driveId = filename.replace('drive_image_', '');
+          if (config.includeImages) {
+            try {
+              const fileBlob = await downloadFromDrive(driveId, driveToken);
+              const path = `assets/images/${driveId}.jpg`;
+              zip.file(path, fileBlob);
+              markdown += `- ![Image](${path})\n`;
+            } catch (error) {
+              console.error('Failed to download image:', error);
+              markdown += `- [Image on Drive](https://drive.google.com/file/d/${driveId}/view)\n`;
+            }
+          } else {
+            markdown += `- [Image on Drive](https://drive.google.com/file/d/${driveId}/view)\n`;
+          }
         } else {
-          markdown += `- ${filename} (Không bao gồm)\n`;
+          markdown += `- ${filename}\n`;
         }
       }
       markdown += `\n`;
@@ -122,8 +127,20 @@ async function exportAsZip(
   downloadFile(blob, `chat_export_${getTimestamp()}.zip`, 'application/zip');
 }
 
-function base64ToBlob(base64: string, mimeType: string): Blob {
-  const byteCharacters = atob(base64);
+async function downloadFromDrive(fileId: string, token?: string): Promise<Blob> {
+  // Send message to background script to download
+  const response = await chrome.runtime.sendMessage({
+    action: 'downloadDriveFile',
+    fileId,
+    token
+  });
+
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+
+  // Convert base64 to blob
+  const byteCharacters = atob(response.data);
   const byteNumbers = new Array(byteCharacters.length);
   
   for (let i = 0; i < byteCharacters.length; i++) {
@@ -131,15 +148,7 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
   }
   
   const byteArray = new Uint8Array(byteNumbers);
-  return new Blob([byteArray], { type: mimeType });
-}
-
-function base64ToText(base64: string): string {
-  try {
-    return atob(base64);
-  } catch {
-    return '[Unable to decode content]';
-  }
+  return new Blob([byteArray]);
 }
 
 function downloadFile(content: string | Blob, filename: string, mimeType: string): void {

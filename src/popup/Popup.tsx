@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Key, ExternalLink } from 'lucide-react';
+import { Key, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 import { extractPromptIdFromUrl } from '../utils/api';
+import { TokenGuide } from '../components/TokenGuide';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Popup() {
   const [driveToken, setDriveToken] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -24,8 +30,8 @@ export default function Popup() {
 
   const handleSaveToken = async () => {
     await chrome.storage.local.set({ driveToken });
-    setShowTokenInput(false);
-    alert('Drive token đã được lưu');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   const handleOpenEditor = async () => {
@@ -35,7 +41,6 @@ export default function Popup() {
       return;
     }
 
-    // Mở editor trong tab mới
     const editorUrl = chrome.runtime.getURL(`src/editor/index.html?promptId=${promptId}`);
     await chrome.tabs.create({ url: editorUrl });
   };
@@ -43,105 +48,98 @@ export default function Popup() {
   const isAIStudioPage = currentUrl.includes('aistudio.google.com');
 
   return (
-    <div className="popup-container">
-      <header className="popup-header">
-        <h1>AI Studio Chat Archiver</h1>
-        <p className="status">
-          {isAIStudioPage ? 'Sẵn sàng' : 'Vui lòng mở AI Studio'}
-        </p>
-      </header>
-
-      <div className="popup-content">
-        <section className="settings">
-          <h2>Drive API Token</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <button 
-              onClick={() => setShowTokenInput(!showTokenInput)} 
-              className="toggle-token-btn"
-              title={driveToken ? 'Token đã lưu' : 'Chưa có token'}
-              style={{
-                padding: '6px 12px',
-                background: driveToken ? '#34a853' : '#5f6368',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '13px'
-              }}
-            >
-              <Key size={14} />
-              <span>{driveToken ? 'Đã có token' : 'Nhập token'}</span>
-            </button>
-          </div>
-          
-          {showTokenInput && (
-            <div style={{ marginBottom: '12px' }}>
-              <input
-                type="password"
-                value={driveToken}
-                onChange={(e) => setDriveToken(e.target.value)}
-                placeholder="Nhập Drive API token..."
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #dadce0',
-                  borderRadius: '4px',
-                  fontSize: '13px',
-                  marginBottom: '8px'
-                }}
-              />
-              <button 
-                onClick={handleSaveToken}
-                style={{
-                  padding: '6px 16px',
-                  background: '#1a73e8',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '13px'
-                }}
-              >
-                Lưu
-              </button>
-            </div>
+    <div className="w-[400px] max-h-[600px] flex flex-col">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4">
+        <h1 className="text-lg font-semibold mb-1">AI Studio Chat Archiver</h1>
+        <div className="flex items-center gap-2 text-sm">
+          {isAIStudioPage ? (
+            <>
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Sẵn sàng</span>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-4 w-4" />
+              <span>Vui lòng mở AI Studio</span>
+            </>
           )}
-          
-          <p style={{ fontSize: '12px', color: '#5f6368', marginBottom: '16px' }}>
-            Token cần thiết để tải file từ Drive (nếu file không public)
-          </p>
-        </section>
-
-        <button
-          onClick={handleOpenEditor}
-          disabled={!isAIStudioPage}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: !isAIStudioPage ? '#dadce0' : '#1a73e8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '500',
-            cursor: !isAIStudioPage ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-        >
-          <ExternalLink size={20} />
-          <span>Mở Editor</span>
-        </button>
+        </div>
       </div>
 
-      <footer className="popup-footer">
-        <p>Mở AI Studio chat và nhấn "Mở Editor"</p>
-      </footer>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Token Section */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span>Drive API Token</span>
+              <Button
+                variant={driveToken ? 'default' : 'secondary'}
+                size="sm"
+                onClick={() => setShowTokenInput(!showTokenInput)}
+                className="h-8"
+              >
+                <Key className="h-3 w-3 mr-2" />
+                {driveToken ? 'Đã có token' : 'Nhập token'}
+              </Button>
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Token cần thiết để tải file từ Drive
+            </CardDescription>
+          </CardHeader>
+
+          {showTokenInput && (
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="token">Token</Label>
+                <Input
+                  id="token"
+                  type="password"
+                  value={driveToken}
+                  onChange={(e) => setDriveToken(e.target.value)}
+                  placeholder="Nhập Drive API token..."
+                />
+              </div>
+              
+              <Button 
+                onClick={handleSaveToken}
+                className="w-full"
+                size="sm"
+              >
+                {saved ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Đã lưu!
+                  </>
+                ) : (
+                  'Lưu token'
+                )}
+              </Button>
+
+              <TokenGuide />
+            </CardContent>
+          )}
+        </Card>
+
+        {/* Open Editor Button */}
+        <Button
+          onClick={handleOpenEditor}
+          disabled={!isAIStudioPage}
+          className="w-full"
+          size="lg"
+        >
+          <ExternalLink className="h-5 w-5 mr-2" />
+          Mở Editor
+        </Button>
+      </div>
+
+      {/* Footer */}
+      <div className="border-t bg-muted/50 p-3 text-center">
+        <p className="text-xs text-muted-foreground">
+          Mở AI Studio chat và nhấn "Mở Editor"
+        </p>
+      </div>
     </div>
   );
 }

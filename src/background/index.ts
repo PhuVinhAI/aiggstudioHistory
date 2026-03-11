@@ -29,6 +29,9 @@ async function fetchPromptDataFromDrive(promptId: string, token?: string) {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Drive API error: 401 - Token không hợp lệ hoặc đã hết hạn');
+      }
       throw new Error(`Drive API error: ${response.status} ${response.statusText}`);
     }
 

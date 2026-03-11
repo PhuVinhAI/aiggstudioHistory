@@ -3,7 +3,10 @@ import { useEditorStore } from '@/lib/store';
 import { Toolbar } from './components/Toolbar';
 import { ChatTurnCard } from './components/ChatTurnCard';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TokenGuide } from '@/components/TokenGuide';
 import type { ChatTurn } from '@/types';
 
 export default function Editor() {
@@ -22,11 +25,51 @@ export default function Editor() {
   }
 
   if (error) {
+    const is401Error = error.includes('401') || error.includes('unauthorized');
+    const isTokenMissing = error.includes('token is required');
+    
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg font-semibold text-destructive">Lỗi</p>
-          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+      <div className="flex h-screen items-center justify-center p-4">
+        <div className="max-w-2xl w-full space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-destructive" />
+                <CardTitle>
+                  {is401Error || isTokenMissing ? 'Cần xác thực Google Drive' : 'Lỗi tải dữ liệu'}
+                </CardTitle>
+              </div>
+              <CardDescription>
+                {is401Error || isTokenMissing 
+                  ? 'Token truy cập Google Drive chưa có hoặc đã hết hạn'
+                  : error
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => {
+                  chrome.runtime.openOptionsPage?.() || 
+                  window.open(chrome.runtime.getURL('popup/index.html'), '_blank');
+                }}
+                className="w-full"
+              >
+                Mở popup để nhập token
+              </Button>
+            </CardContent>
+          </Card>
+
+          {(is401Error || isTokenMissing) && <TokenGuide />}
+          
+          {!is401Error && !isTokenMissing && (
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="w-full"
+            >
+              Thử lại
+            </Button>
+          )}
         </div>
       </div>
     );

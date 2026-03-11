@@ -1,58 +1,68 @@
-# AI Studio Chat Archiver
+# AI Studio Archiver - Monorepo
 
-Chrome Extension để xuất lịch sử chat từ Google AI Studio kèm file đính kèm.
-
-## Tính năng
-
-- Đánh chặp file upload (ảnh, PDF, text) khi người dùng tải lên AI Studio
-- Xuất lịch sử chat dưới dạng Markdown hoặc ZIP
-- Cấu hình bao gồm/loại trừ ảnh và PDF
-- Lưu trữ tạm thời file trong 24 giờ
-- Xử lý 100% client-side (không gửi dữ liệu ra ngoài)
-
-## Cài đặt
-
-1. Build extension:
-```bash
-npm install
-npm run build
-```
-
-2. Load extension vào Chrome:
-   - Mở `chrome://extensions/`
-   - Bật "Developer mode"
-   - Click "Load unpacked"
-   - Chọn thư mục `dist`
-
-## Sử dụng
-
-1. Mở https://aistudio.google.com
-2. Extension sẽ tự động đính kèm debugger (sẽ có thông báo)
-3. Upload file và chat bình thường
-4. Click nút "Export" ở góc trên để tải xuống lịch sử chat
-
-## Cấu hình
-
-Click vào icon extension để:
-- Xem danh sách file đã lưu
-- Bật/tắt bao gồm ảnh hoặc PDF trong export
-- Xóa file đã lưu
+Export và quản lý lịch sử chat từ Google AI Studio.
 
 ## Cấu trúc dự án
 
 ```
-src/
-├── background/     # Service worker (đánh chặp upload)
-├── content/        # UI injection (nút Export)
-├── popup/          # Extension popup (cấu hình)
-├── utils/          # Export & scraping logic
-└── types/          # TypeScript types
+ai-studio-archiver/
+├── packages/
+│   ├── extension/     # Chrome Extension (TypeScript + React)
+│   └── cli/          # CLI Tool (Rust)
+├── package.json      # Root workspace config
+└── README.md
 ```
 
-## Công nghệ
+## Packages
 
-- Vite + React + TypeScript
-- CRXJS (Manifest V3)
-- JSZip (đóng gói file)
-- Lucide React (icons)
-- Chrome Debugger API
+### Extension (Chrome Extension)
+Chrome extension để export chat history từ Google AI Studio với UI đầy đủ.
+
+**Tech stack:** TypeScript, React, Vite, Tailwind CSS, shadcn/ui
+
+**Xem thêm:** [packages/extension/README.md](packages/extension/README.md)
+
+### CLI (Command Line Tool)
+CLI tool để export chat history từ terminal, phù hợp cho automation và scripting.
+
+**Tech stack:** Rust, Tokio, Clap
+
+**Xem thêm:** [packages/cli/README.md](packages/cli/README.md)
+
+## Development
+
+### Prerequisites
+- Node.js 18+
+- npm hoặc pnpm
+- Rust 1.70+ (cho CLI)
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Dev extension
+npm run dev
+
+# Build extension
+npm run build
+
+# Build CLI
+npm run build:cli
+```
+
+### Workspace Commands
+
+```bash
+# Run command trong extension package
+npm run dev -w extension
+npm run build -w extension
+
+# Build CLI
+cd packages/cli && cargo build --release
+```
+
+## License
+
+MIT

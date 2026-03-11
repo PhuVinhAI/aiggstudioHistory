@@ -70,6 +70,18 @@ enum Commands {
         #[command(subcommand)]
         action: CheckpointAction,
     },
+    
+    /// Quản lý cài đặt dự án & export
+    Settings {
+        #[command(subcommand)]
+        action: SettingsAction,
+    },
+    
+    /// Thao tác trực tiếp với file và cây thư mục
+    Project {
+        #[command(subcommand)]
+        action: ProjectAction,
+    },
 }
 
 #[derive(Subcommand)]
@@ -112,6 +124,32 @@ enum CheckpointAction {
     Create { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(short = 'f', long)] files: Vec<String> },
     Revert { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(short, long)] checkpoint_id: String, #[arg(long, default_value = "")] created_files: Vec<String> },
     Delete { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(short, long)] checkpoint_id: String },
+}
+
+#[derive(Subcommand)]
+enum SettingsAction {
+    View { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String },
+    Sync { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(long)] enable: bool, #[arg(long)] sync_path: Option<String> },
+    Ignore { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(short = 'i', long)] patterns: Vec<String> },
+    ExportOpts { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(long)] full_tree: Option<bool>, #[arg(long)] line_numbers: Option<bool>, #[arg(long)] no_comments: Option<bool>, #[arg(long)] no_logs: Option<bool>, #[arg(long)] compressed: Option<bool> },
+}
+
+#[derive(Subcommand)]
+enum ProjectAction {
+    Tree { #[arg(short, long)] path: String, #[arg(short, long, default_value = "")] dir: String },
+    Read { #[arg(short, long)] path: String, #[arg(short, long)] file: String, #[arg(short, long)] start: Option<usize>, #[arg(short, long)] end: Option<usize> },
+    Exclude { #[arg(short, long)] path: String, #[arg(short = 'P', long, default_value = "default")] profile: String, #[arg(short, long)] file: String, #[arg(short = 'r', long, value_parser = parse_range)] ranges: Vec<(usize, usize)> },
+}
+
+// Helper function để parse string "10-20" thành tuple (10, 20) cho lệnh Exclude
+fn parse_range(s: &str) -> Result<(usize, usize), String> {
+    let parts: Vec<&str> = s.split('-').collect();
+    if parts.len() != 2 {
+        return Err("Format phải là start-end (ví dụ: 10-20)".to_string());
+    }
+    let start = parts[0].parse().map_err(|_| "Start không phải là số".to_string())?;
+    let end = parts[1].parse().map_err(|_| "End không phải là số".to_string())?;
+    Ok((start, end))
 }
 
 fn main() -> Result<()> {
@@ -172,6 +210,26 @@ fn main() -> Result<()> {
                 CheckpointAction::Delete { path, profile, checkpoint_id } => handlers::checkpoint_handler::CheckpointAction::Delete { path, profile, checkpoint_id },
             };
             handlers::handle_checkpoint(h);
+        }
+        
+        Commands::Settings { action } => {
+            let h = match action {
+                SettingsAction::View { path, profile } => handlers::settings_handler::SettingsAction::View { path, profile },
+                SettingsAction::Sync { path, profile, enable, sync_path } => handlers::settings_handler::SettingsAction::Sync { path, profile, enable, sync_path },
+                SettingsAction::Ignore { path, profile, patterns } => handlers::settings_handler::SettingsAction::Ignore { path, profile, patterns },
+                SettingsAction::ExportOpts { path, profile, full_tree, line_numbers, no_comments, no_logs, compressed } =>
+                    handlers::settings_handler::SettingsAction::ExportOpts { path, profile, full_tree, line_numbers, no_comments, no_logs, compressed },
+            };
+            handlers::handle_settings(h);
+        }
+        
+        Commands::Project { action } => {
+            let h = match action {
+                ProjectAction::Tree { path, dir } => handlers::project_handler::ProjectAction::Tree { path, dir },
+                ProjectAction::Read { path, file, start, end } => handlers::project_handler::ProjectAction::Read { path, file, start, end },
+                ProjectAction::Exclude { path, profile, file, ranges } => handlers::project_handler::ProjectAction::Exclude { path, profile, file, ranges },
+            };
+            handlers::handle_project(h);
         }
     }
 

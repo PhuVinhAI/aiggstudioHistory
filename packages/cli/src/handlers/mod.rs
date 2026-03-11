@@ -6,6 +6,8 @@ pub mod export_handler;
 pub mod git_handler;
 pub mod chat_handler;
 pub mod checkpoint_handler;
+pub mod settings_handler;
+pub mod project_handler;
 
 pub use scan_handler::handle_scan;
 pub use profile_handler::handle_profile;
@@ -14,3 +16,5 @@ pub use export_handler::handle_export;
 pub use git_handler::handle_git;
 pub use chat_handler::handle_chat;
 pub use checkpoint_handler::handle_checkpoint;
+pub use settings_handler::handle_settings;
+pub use project_handler::handle_project;

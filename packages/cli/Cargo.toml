@@ -1,14 +1,32 @@
 [package]
-name = "ai-studio-archiver-cli"
+name = "master-context-cli"
 version = "0.1.0"
 edition = "2021"
-authors = ["AI Studio Archiver Team"]
-description = "CLI tool to export Google AI Studio chat history"
+authors = ["TomiSakae"]
+description = "CLI tool để quản lý và tạo ngữ cảnh cho các dự án lập trình"
+
+[[bin]]
+name = "mc"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 tokio = { version = "1.40", features = ["full"] }
-reqwest = { version = "0.12", features = ["json"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ignore = "0.4"
+tiktoken-rs = "0.7.0"
+regex = "1"
+lazy_static = "1.5.0"
+path-clean = "1.0"
+sha2 = "0.10"
+notify = "8.2.0"
+num_cpus = "1.17.0"
+walkdir = "2.5.0"
+git2 = "0.20.2"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4"] }
 anyhow = "1.0"
+colored = "2.1"
+indicatif = "0.17"
+dirs = "5.0"

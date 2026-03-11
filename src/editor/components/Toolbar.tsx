@@ -53,7 +53,7 @@ export function Toolbar() {
 
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between">
+      <div className="mx-auto max-w-4xl px-4 flex h-14 items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
             variant="outline"

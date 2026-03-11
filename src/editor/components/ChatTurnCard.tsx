@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Trash2, FileText, Image as ImageIcon } from 'lucide-react';
+import { Trash2, FileText, Image as ImageIcon, User, Bot, Brain, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEditorStore } from '@/lib/store';
 import type { ChatTurn } from '@/types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useState } from 'react';
 
 interface ChatTurnCardProps {
   turn: ChatTurn;
@@ -15,6 +16,11 @@ interface ChatTurnCardProps {
 export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
   const { selectedTurns, toggleTurnSelection, removeTurn, removeAttachment, showThinking } = useEditorStore();
   const isSelected = selectedTurns.has(index);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Lấy dòng đầu tiên của content
+  const firstLine = turn.content?.split('\n')[0] || '';
+  const hasMoreContent = turn.content && turn.content.split('\n').length > 1;
 
   return (
     <Card className={isSelected ? 'border-primary' : ''}>
@@ -24,9 +30,16 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
             checked={isSelected}
             onCheckedChange={() => toggleTurnSelection(index)}
           />
-          <span className="font-semibold">
-            {turn.role === 'user' ? '👤 User' : '🤖 Model'}
-          </span>
+          <div className="flex items-center gap-2">
+            {turn.role === 'user' ? (
+              <User className="h-4 w-4" />
+            ) : (
+              <Bot className="h-4 w-4" />
+            )}
+            <span className="font-semibold">
+              {turn.role === 'user' ? 'User' : 'Model'}
+            </span>
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -39,17 +52,47 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {turn.content && (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {turn.content}
-            </ReactMarkdown>
+          <div>
+            <div 
+              className="prose prose-sm max-w-none dark:prose-invert cursor-pointer"
+              onClick={() => hasMoreContent && setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {turn.content}
+                </ReactMarkdown>
+              ) : (
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 line-clamp-1">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {firstLine}
+                    </ReactMarkdown>
+                  </div>
+                  {hasMoreContent && (
+                    <ChevronDown className="h-4 w-4 flex-shrink-0 mt-1" />
+                  )}
+                </div>
+              )}
+            </div>
+            {isExpanded && hasMoreContent && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(false)}
+                className="mt-2 h-6 text-xs"
+              >
+                <ChevronUp className="h-3 w-3 mr-1" />
+                Thu gọn
+              </Button>
+            )}
           </div>
         )}
         
         {showThinking && turn.thoughts && (
           <details className="rounded-lg border p-3">
-            <summary className="cursor-pointer font-medium text-sm">
-              💭 Thinking Process
+            <summary className="cursor-pointer font-medium text-sm flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Thinking Process
             </summary>
             <div className="mt-2 text-sm text-muted-foreground">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>

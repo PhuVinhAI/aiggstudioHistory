@@ -37,7 +37,7 @@ export default function Editor() {
       <Toolbar />
       
       <ScrollArea className="flex-1">
-        <div className="container py-6">
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="mb-6">
             <h1 className="text-2xl font-bold">AI Studio Chat Editor</h1>
             <p className="text-sm text-muted-foreground">

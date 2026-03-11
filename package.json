@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "npm run dev -w @ai-studio-archiver/extension",
     "build": "npm run build -w @ai-studio-archiver/extension",
-    "build:cli": "cd packages/cli && cargo build --release",
+    "build:cli": "npm run build -w @ai-studio-archiver/cli",
     "lint": "npm run lint -w @ai-studio-archiver/extension"
   },
   "devDependencies": {

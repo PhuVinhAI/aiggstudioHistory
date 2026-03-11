@@ -16,64 +16,59 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 });
 
 async function fetchPromptDataFromDrive(promptId: string, token?: string) {
-  if (token) {
-    try {
-      const url = `https://www.googleapis.com/drive/v3/files/${promptId}?alt=media`;
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+  if (!token) {
+    throw new Error('Drive API token is required. Please add your token in the popup.');
+  }
 
-      if (response.ok) {
-        return await response.json();
+  try {
+    const url = `https://www.googleapis.com/drive/v3/files/${promptId}?alt=media`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    } catch (error) {
-      console.error('Failed with token, trying without:', error);
+    });
+
+    if (!response.ok) {
+      throw new Error(`Drive API error: ${response.status} ${response.statusText}`);
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch from Drive API:', error);
+    throw error;
   }
-
-  const url = `https://drive.usercontent.google.com/download?id=${promptId}&export=download&confirm=t`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Drive download failed: ${response.status}. File có thể cần token.`);
-  }
-
-  return await response.json();
 }
 
 async function downloadDriveFile(fileId: string, token?: string): Promise<{ data: string; mimeType: string }> {
-  let url: string;
-  let headers: Record<string, string> = {};
-  let mimeType = 'application/octet-stream';
-
-  if (token) {
-    try {
-      // Get file metadata first to know the MIME type
-      const metaUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?fields=mimeType`;
-      const metaResponse = await fetch(metaUrl, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (metaResponse.ok) {
-        const meta = await metaResponse.json();
-        mimeType = meta.mimeType || mimeType;
-      }
-    } catch (error) {
-      console.error('Failed to get file metadata:', error);
-    }
-
-    url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
-    headers['Authorization'] = `Bearer ${token}`;
-  } else {
-    url = `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`;
+  if (!token) {
+    throw new Error('Drive API token is required');
   }
 
-  const response = await fetch(url, { headers });
+  let mimeType = 'application/octet-stream';
+
+  try {
+    // Get file metadata first to know the MIME type
+    const metaUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?fields=mimeType`;
+    const metaResponse = await fetch(metaUrl, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (metaResponse.ok) {
+      const meta = await metaResponse.json();
+      mimeType = meta.mimeType || mimeType;
+    }
+  } catch (error) {
+    console.error('Failed to get file metadata:', error);
+  }
+
+  // Download file content
+  const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+  const response = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
   
   if (!response.ok) {
-    throw new Error(`Failed to download file: ${response.status}`);
+    throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
   }
 
   // Try to get MIME type from response headers if not already set

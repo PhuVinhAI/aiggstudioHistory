@@ -4,11 +4,12 @@
   "version": "1.0.0",
   "description": "Export Google AI Studio chat history with attachments",
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://aistudio.google.com/*",
-    "https://content.googleapis.com/*"
+    "https://www.googleapis.com/*"
   ],
   "background": {
     "service_worker": "src/background/index.ts",
@@ -22,5 +23,11 @@
   ],
   "action": {
     "default_popup": "src/popup/index.html"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/editor/index.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

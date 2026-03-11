@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use sha2::{Digest, Sha256};
 
 // CLI: Lấy thư mục config (thay thế Tauri's AppHandle)
-fn get_app_config_dir() -> Result<PathBuf, String> {
+pub fn get_app_config_dir() -> Result<PathBuf, String> {
     let config_dir = dirs::config_dir()
         .ok_or_else(|| "Không thể xác định thư mục config".to_string())?
         .join("master-context-cli");

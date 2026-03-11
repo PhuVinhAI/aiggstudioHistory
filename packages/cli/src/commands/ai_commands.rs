@@ -3,28 +3,24 @@ use crate::{file_cache, models};
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use tauri::{command, AppHandle};
 
 // Helper to get the directory for a profile's chats
 fn get_chats_dir(
-    app: &AppHandle,
     project_path: &str,
     profile_name: &str,
 ) -> Result<PathBuf, String> {
-    let project_dir = file_cache::get_project_config_dir(app, project_path)?;
+    let project_dir = file_cache::get_project_config_dir(project_path)?;
     let chats_dir = project_dir.join("chats").join(profile_name);
     fs::create_dir_all(&chats_dir)
         .map_err(|e| format!("Không thể tạo thư mục chats: {}", e))?;
     Ok(chats_dir)
 }
 
-#[command]
 pub fn list_chat_sessions(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
 ) -> Result<Vec<models::AIChatSessionHeader>, String> {
-    let chats_dir = get_chats_dir(&app, &project_path, &profile_name)?;
+    let chats_dir = get_chats_dir(project_path, profile_name)?;
     let mut sessions = Vec::new();
 
     for entry in fs::read_dir(chats_dir).map_err(|e| e.to_string())? {
@@ -48,14 +44,12 @@ pub fn list_chat_sessions(
     Ok(sessions)
 }
 
-#[command]
 pub fn save_chat_session(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     session: models::AIChatSession,
 ) -> Result<(), String> {
-    let chats_dir = get_chats_dir(&app, &project_path, &profile_name)?;
+    let chats_dir = get_chats_dir(project_path, profile_name)?;
     let file_path = chats_dir.join(format!("{}.json", session.id));
     let json_string =
         serde_json::to_string_pretty(&session).map_err(|e| e.to_string())?;
@@ -65,27 +59,23 @@ pub fn save_chat_session(
     Ok(())
 }
 
-#[command]
 pub fn load_chat_session(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     session_id: String,
 ) -> Result<models::AIChatSession, String> {
-    let chats_dir = get_chats_dir(&app, &project_path, &profile_name)?;
+    let chats_dir = get_chats_dir(project_path, profile_name)?;
     let file_path = chats_dir.join(format!("{}.json", session_id));
     let content = fs::read_to_string(file_path).map_err(|e| e.to_string())?;
     serde_json::from_str(&content).map_err(|e| e.to_string())
 }
 
-#[command]
 pub fn delete_chat_session(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     session_id: String,
 ) -> Result<(), String> {
-    let chats_dir = get_chats_dir(&app, &project_path, &profile_name)?;
+    let chats_dir = get_chats_dir(project_path, profile_name)?;
     let file_path = chats_dir.join(format!("{}.json", session_id));
     if file_path.exists() {
         fs::remove_file(file_path).map_err(|e| e.to_string())?;
@@ -93,13 +83,11 @@ pub fn delete_chat_session(
     Ok(())
 }
 
-#[command]
 pub fn delete_all_chat_sessions(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
 ) -> Result<(), String> {
-    let chats_dir = get_chats_dir(&app, &project_path, &profile_name)?;
+    let chats_dir = get_chats_dir(project_path, profile_name)?;
     if chats_dir.exists() {
         fs::remove_dir_all(&chats_dir)
             .map_err(|e| format!("Không thể xóa thư mục chats: {}", e))?;
@@ -110,25 +98,20 @@ pub fn delete_all_chat_sessions(
     Ok(())
 }
 
-#[command]
 pub fn update_chat_session_title(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     session_id: String,
     new_title: String,
 ) -> Result<(), String> {
-    let mut session =
-        load_chat_session(app.clone(), project_path.clone(), profile_name.clone(), session_id)?;
+    let mut session = load_chat_session(project_path, profile_name, session_id)?;
     session.title = new_title;
-    save_chat_session(app, project_path, profile_name, session)
+    save_chat_session(project_path, profile_name, session)
 }
 
-#[command]
 pub fn create_chat_session(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     title: String,
 ) -> Result<models::AIChatSession, String> {
     let new_session = models::AIChatSession {
@@ -140,11 +123,6 @@ pub fn create_chat_session(
         total_cost: None,
     };
 
-    save_chat_session(
-        app,
-        project_path,
-        profile_name,
-        new_session.clone(),
-    )?;
+    save_chat_session(project_path, profile_name, new_session.clone())?;
     Ok(new_session)
 }

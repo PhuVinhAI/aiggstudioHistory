@@ -1,4 +1,5 @@
 // src-tauri/src/project_scanner.rs
+// CLI version - removed Tauri Window/Emitter
 use crate::group_updater;
 use crate::models::{
     CachedProjectData, FileMetadata, FileNode, ProjectStats,
@@ -12,7 +13,6 @@ use std::time::UNIX_EPOCH;
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
 use sha2::{Digest, Sha256};
 use tiktoken_rs::cl100k_base;
-use tauri::{Emitter, Window};
 use lazy_static::lazy_static;
 use num_cpus;
 
@@ -31,7 +31,6 @@ pub struct ScanOptions {
 }
 
 pub fn perform_smart_scan_and_rebuild(
-    window: &Window, // <-- THÊM THAM SỐ NÀY
     path: &str,
     old_data: CachedProjectData,
     options: ScanOptions,
@@ -96,7 +95,8 @@ pub fn perform_smart_scan_and_rebuild(
             if metadata.is_file() {
                 if let Ok(relative_path) = entry_path.strip_prefix(root_path) {
                     let relative_path_str = relative_path.to_string_lossy().to_string().replace("\\", "/");
-                    let _ = window.emit("scan_progress", &relative_path_str);
+                    // CLI: No window.emit, just print progress
+                    println!("[Scan] {}", relative_path_str);
                     files_to_process.push((entry_path, metadata));
                     Arc::get_mut(&mut all_valid_files)
                         .unwrap()
@@ -126,13 +126,12 @@ pub fn perform_smart_scan_and_rebuild(
         let root_path = root_path.to_path_buf();
         let old_metadata_cache = Arc::clone(&old_metadata_cache);
         let bpe = Arc::clone(&bpe);
-        let window = window.clone();
         let final_non_analyzable_extensions = final_non_analyzable_extensions.clone();
 
         let handle = thread::spawn(move || {
             while let Ok((absolute_path, metadata)) = rx.lock().unwrap().recv() {
                 let relative_path = absolute_path.strip_prefix(&root_path).unwrap().to_path_buf();
-                let _ = window.emit("analysis_progress", relative_path.to_string_lossy());
+                // CLI: No window.emit
 
                 let relative_path_str = relative_path.to_string_lossy().replace("\\", "/");
 

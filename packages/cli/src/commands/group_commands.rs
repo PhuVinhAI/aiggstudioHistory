@@ -3,18 +3,15 @@ use crate::{context_generator, file_cache, group_updater, models};
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tauri::{command, AppHandle, Emitter, Window};
 use super::utils::{perform_auto_export, sanitize_group_name};
 use crate::models::AIGroupUpdateResult;
 
-#[command]
 pub fn update_groups_in_project_data(
-    app: AppHandle,
-    path: String,
-    profile_name: String,
+    path: &str,
+    profile_name: &str,
     groups: Vec<models::Group>,
 ) -> Result<(), String> {
-    let mut project_data = file_cache::load_project_data(&app, &path, &profile_name)?;
+    let mut project_data = file_cache::load_project_data(path, profile_name)?;
     let old_groups = project_data.groups.clone();
 
     if project_data.sync_enabled.unwrap_or(false) {
@@ -54,21 +51,19 @@ pub fn update_groups_in_project_data(
     project_data.groups = groups;
 
     if project_data.sync_enabled.unwrap_or(false) && project_data.sync_path.is_some() {
-        perform_auto_export(&path, &profile_name, &project_data);
+        perform_auto_export(path, profile_name, &project_data);
     }
 
-    file_cache::save_project_data(&app, &path, &profile_name, &project_data)
+    file_cache::save_project_data(path, profile_name, &project_data)
 }
 
-#[command]
 pub fn calculate_group_stats_from_cache(
-    app: AppHandle,
-    root_path_str: String,
-    profile_name: String,
+    root_path_str: &str,
+    profile_name: &str,
     paths: Vec<String>,
 ) -> Result<models::GroupStats, String> {
-    let project_data = file_cache::load_project_data(&app, &root_path_str, &profile_name)?;
-    let root_path = Path::new(&root_path_str);
+    let project_data = file_cache::load_project_data(root_path_str, profile_name)?;
+    let root_path = Path::new(root_path_str);
     Ok(group_updater::recalculate_stats_for_paths(
         &paths,
         &project_data.file_metadata_cache,
@@ -76,122 +71,84 @@ pub fn calculate_group_stats_from_cache(
     ))
 }
 
-#[command]
 pub fn start_group_update(
-    window: Window,
-    app: AppHandle,
     group_id: String,
-    root_path_str: String,
-    profile_name: String,
+    root_path_str: &str,
+    profile_name: &str,
     paths: Vec<String>,
-) {
-    let app_clone = app.clone();
-    std::thread::spawn(move || {
-        let result =
-            calculate_group_stats_from_cache(app_clone, root_path_str.clone(), profile_name.clone(), paths.clone());
-        match result {
-            Ok(new_stats) => {
-                if let Ok(mut project_data) =
-                    file_cache::load_project_data(&app, &root_path_str, &profile_name)
-                {
-                    if let Some(group) = project_data.groups.iter_mut().find(|g| g.id == group_id) {
-                        group.paths = paths.clone();
-                        group.stats = new_stats;
+) -> Result<models::GroupStats, String> {
+    let new_stats = calculate_group_stats_from_cache(root_path_str, profile_name, paths.clone())?;
+    
+    let mut project_data = file_cache::load_project_data(root_path_str, profile_name)?;
+    if let Some(group) = project_data.groups.iter_mut().find(|g| g.id == group_id) {
+        group.paths = paths.clone();
+        group.stats = new_stats.clone();
 
-                        if project_data.sync_enabled.unwrap_or(false) && project_data.sync_path.is_some() {
-                            perform_auto_export(&root_path_str, &profile_name, &project_data);
-                        }
-                    }
-                    let _ = file_cache::save_project_data(&app, &root_path_str, &profile_name, &project_data);
-                }
-                let _ = window.emit(
-                    "group_update_complete",
-                    serde_json::json!({ "groupId": group_id, "paths": paths, "stats": new_stats }),
-                );
-            }
-            Err(e) => {
-                let _ = window.emit("group_update_error", e);
-            }
+        if project_data.sync_enabled.unwrap_or(false) && project_data.sync_path.is_some() {
+            perform_auto_export(root_path_str, profile_name, &project_data);
         }
-    });
+    }
+    file_cache::save_project_data(root_path_str, profile_name, &project_data)?;
+    
+    Ok(new_stats)
 }
 
-#[command]
 pub fn start_group_export(
-    window: Window,
-    app: AppHandle,
     group_id: String,
-    root_path_str: String,
-    profile_name: String,
-) {
-    std::thread::spawn(move || {
-        let result: Result<String, String> = (|| {
-            let project_data = file_cache::load_project_data(&app, &root_path_str, &profile_name)?;
-            let use_full_tree = project_data.export_use_full_tree.unwrap_or(false);
-            let with_line_numbers = project_data.export_with_line_numbers.unwrap_or(true);
-            let without_comments = project_data.export_without_comments.unwrap_or(false);
-            let remove_debug_logs = project_data.export_remove_debug_logs.unwrap_or(false);
-            let super_compressed = project_data.export_super_compressed.unwrap_or(false);
-            let always_apply_text = project_data.always_apply_text;
-            let exclude_extensions = project_data.export_exclude_extensions;
-            let root_path = Path::new(&root_path_str);
-            let group = project_data
-                .groups
-                .iter()
-                .find(|g| g.id == group_id)
-                .ok_or_else(|| "group.not_found".to_string())?;
-            let expanded_files = context_generator::expand_group_paths_to_files(
-                &group.paths,
-                &project_data.file_metadata_cache,
-                root_path,
-            );
-            if expanded_files.is_empty() {
-                return Err("group.export_no_files".to_string());
-            }
-            context_generator::generate_context_from_files(
-                &root_path_str,
-                &expanded_files,
-                use_full_tree,
-                &project_data.file_tree,
-                with_line_numbers,
-                without_comments,
-                remove_debug_logs,
-                super_compressed,
-                &always_apply_text,
-                &exclude_extensions,
-                &project_data.file_metadata_cache,
-            )
-        })();
-        match result {
-            Ok(context) => {
-                let _ = window.emit(
-                    "group_export_complete",
-                    serde_json::json!({ "groupId": group_id, "context": context }),
-                );
-            }
-            Err(e) => {
-                let _ = window.emit("group_export_error", e);
-            }
-        }
-    });
+    root_path_str: &str,
+    profile_name: &str,
+) -> Result<String, String> {
+    let project_data = file_cache::load_project_data(root_path_str, profile_name)?;
+    let use_full_tree = project_data.export_use_full_tree.unwrap_or(false);
+    let with_line_numbers = project_data.export_with_line_numbers.unwrap_or(true);
+    let without_comments = project_data.export_without_comments.unwrap_or(false);
+    let remove_debug_logs = project_data.export_remove_debug_logs.unwrap_or(false);
+    let super_compressed = project_data.export_super_compressed.unwrap_or(false);
+    let always_apply_text = project_data.always_apply_text;
+    let exclude_extensions = project_data.export_exclude_extensions;
+    let root_path = Path::new(root_path_str);
+    let group = project_data
+        .groups
+        .iter()
+        .find(|g| g.id == group_id)
+        .ok_or_else(|| "group.not_found".to_string())?;
+    let expanded_files = context_generator::expand_group_paths_to_files(
+        &group.paths,
+        &project_data.file_metadata_cache,
+        root_path,
+    );
+    if expanded_files.is_empty() {
+        return Err("group.export_no_files".to_string());
+    }
+    context_generator::generate_context_from_files(
+        root_path_str,
+        &expanded_files,
+        use_full_tree,
+        &project_data.file_tree,
+        with_line_numbers,
+        without_comments,
+        remove_debug_logs,
+        super_compressed,
+        &always_apply_text,
+        &exclude_extensions,
+        &project_data.file_metadata_cache,
+    )
 }
 
-#[command]
 pub fn generate_group_context(
-    app: AppHandle,
     group_id: String,
-    root_path_str: String,
-    profile_name: String,
+    root_path_str: &str,
+    profile_name: &str,
     use_full_tree: bool,
     with_line_numbers: bool,
     without_comments: bool,
     remove_debug_logs: bool,
     super_compressed: bool,
 ) -> Result<String, String> {
-    let project_data = file_cache::load_project_data(&app, &root_path_str, &profile_name)?;
+    let project_data = file_cache::load_project_data(root_path_str, profile_name)?;
     let always_apply_text = project_data.always_apply_text;
     let exclude_extensions = project_data.export_exclude_extensions;
-    let root_path = Path::new(&root_path_str);
+    let root_path = Path::new(root_path_str);
     let group = project_data
         .groups
         .iter()
@@ -206,7 +163,7 @@ pub fn generate_group_context(
         return Err("group.generate_context_no_files".to_string());
     }
     context_generator::generate_context_from_files(
-        &root_path_str,
+        root_path_str,
         &expanded_files,
         use_full_tree,
         &project_data.file_tree,
@@ -220,15 +177,13 @@ pub fn generate_group_context(
     )
 }
 
-#[command]
 pub fn generate_group_context_for_ai(
-    app: AppHandle,
     group_id: String,
-    root_path_str: String,
-    profile_name: String,
+    root_path_str: &str,
+    profile_name: &str,
 ) -> Result<String, String> {
-    let project_data = file_cache::load_project_data(&app, &root_path_str, &profile_name)?;
-    let root_path = Path::new(&root_path_str);
+    let project_data = file_cache::load_project_data(root_path_str, profile_name)?;
+    let root_path = Path::new(root_path_str);
     let group = project_data
         .groups
         .iter()
@@ -246,7 +201,7 @@ pub fn generate_group_context_for_ai(
 
     // Generate context with specific, non-configurable settings for AI
     context_generator::generate_context_from_files(
-        &root_path_str,
+        root_path_str,
         &expanded_files,
         false, // use_full_tree: false (minimal tree)
         &project_data.file_tree,
@@ -260,17 +215,15 @@ pub fn generate_group_context_for_ai(
     )
 }
 
-#[command]
 pub fn update_group_paths_from_ai(
-    app: AppHandle,
-    path: String,
-    profile_name: String,
+    path: &str,
+    profile_name: &str,
     group_id: String,
     paths_to_add: Vec<String>,
     paths_to_remove: Vec<String>,
 ) -> Result<AIGroupUpdateResult, String> {
-    let mut project_data = file_cache::load_project_data(&app, &path, &profile_name)?;
-    let root_path = Path::new(&path);
+    let mut project_data = file_cache::load_project_data(path, profile_name)?;
+    let root_path = Path::new(path);
     let metadata_cache_clone = project_data.file_metadata_cache.clone();
 
     // Find the index of the group first to manage borrow scopes correctly.
@@ -323,7 +276,7 @@ pub fn update_group_paths_from_ai(
         );
 
         // Now that the borrow on `group` is finished, we can save the entire `project_data`.
-        file_cache::save_project_data(&app, &path, &profile_name, &project_data)?;
+        file_cache::save_project_data(path, profile_name, &project_data)?;
 
         Ok(AIGroupUpdateResult {
             updated_group: updated_group_clone,
@@ -334,15 +287,13 @@ pub fn update_group_paths_from_ai(
     }
 }
 
-#[command]
 pub fn get_expanded_files_for_group(
-    app: AppHandle,
-    path: String,
-    profile_name: String,
+    path: &str,
+    profile_name: &str,
     group_id: String,
 ) -> Result<Vec<String>, String> {
-    let project_data = file_cache::load_project_data(&app, &path, &profile_name)?;
-    let root_path = Path::new(&path);
+    let project_data = file_cache::load_project_data(path, profile_name)?;
+    let root_path = Path::new(path);
 
     if let Some(group) = project_data.groups.iter().find(|g| g.id == group_id) {
         let expanded_files = context_generator::expand_group_paths_to_files(

@@ -2,33 +2,29 @@
 use crate::file_cache;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tauri::{command, AppHandle};
 use uuid::Uuid;
 use walkdir::WalkDir;
 
 // Helper to get the base directory for a profile's checkpoints
 fn get_checkpoints_dir(
-    app: &AppHandle,
     project_path: &str,
     profile_name: &str,
 ) -> Result<PathBuf, String> {
-    let project_dir = file_cache::get_project_config_dir(app, project_path)?;
+    let project_dir = file_cache::get_project_config_dir(project_path)?;
     let checkpoints_dir = project_dir.join("checkpoints").join(profile_name);
     fs::create_dir_all(&checkpoints_dir)
         .map_err(|e| format!("Không thể tạo thư mục checkpoints: {}", e))?;
     Ok(checkpoints_dir)
 }
 
-#[command]
 pub fn create_checkpoint(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     files_to_backup: Vec<String>,
     staged_changes_json: Option<String>,
 ) -> Result<String, String> {
     let checkpoint_id = Uuid::new_v4().to_string();
-    let checkpoints_dir = get_checkpoints_dir(&app, &project_path, &profile_name)?;
+    let checkpoints_dir = get_checkpoints_dir(project_path, profile_name)?;
     let checkpoint_path = checkpoints_dir.join(&checkpoint_id);
 
     fs::create_dir_all(&checkpoint_path)
@@ -42,7 +38,7 @@ pub fn create_checkpoint(
         }
     }
 
-    let project_root = Path::new(&project_path);
+    let project_root = Path::new(project_path);
 
     for rel_path_str in files_to_backup {
         let source_path = project_root.join(&rel_path_str);
@@ -60,22 +56,20 @@ pub fn create_checkpoint(
     Ok(checkpoint_id)
 }
 
-#[command]
 pub fn revert_to_checkpoint(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     checkpoint_id: String,
     created_files_in_turn: Vec<String>,
 ) -> Result<Option<String>, String> {
-    let checkpoints_dir = get_checkpoints_dir(&app, &project_path, &profile_name)?;
+    let checkpoints_dir = get_checkpoints_dir(project_path, profile_name)?;
     let checkpoint_path = checkpoints_dir.join(&checkpoint_id);
 
     if !checkpoint_path.is_dir() {
         return Err(format!("Checkpoint '{}' không tồn tại.", checkpoint_id));
     }
 
-    let project_root = Path::new(&project_path);
+    let project_root = Path::new(project_path);
 
     // 1. Restore backed-up files
     for entry in WalkDir::new(&checkpoint_path)
@@ -120,14 +114,12 @@ pub fn revert_to_checkpoint(
     Ok(staged_changes_content)
 }
 
-#[command]
 pub fn delete_checkpoint(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
     checkpoint_id: String,
 ) -> Result<(), String> {
-    let checkpoints_dir = get_checkpoints_dir(&app, &project_path, &profile_name)?;
+    let checkpoints_dir = get_checkpoints_dir(project_path, profile_name)?;
     let checkpoint_path = checkpoints_dir.join(&checkpoint_id);
 
     if checkpoint_path.is_dir() {

@@ -81,7 +81,7 @@ enum Commands {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum ProfileAction {
     /// List tất cả profiles
     List,
@@ -117,7 +117,7 @@ enum ProfileAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum GroupAction {
     /// List groups trong profile
     List {
@@ -159,7 +159,7 @@ enum GroupAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum GitAction {
     /// Check git repository info
     Status {
@@ -195,7 +195,7 @@ enum GitAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum ChatAction {
     /// List chat sessions
     List,
@@ -213,7 +213,7 @@ enum ChatAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum CheckpointAction {
     /// Create checkpoint
     Create {
@@ -260,25 +260,42 @@ async fn main() -> Result<()> {
         Commands::Scan { path, profile } => {
             println!("🔍 Scanning project: {}", path);
             println!("📁 Profile: {}", profile);
-            commands::project_commands::scan_project_cli(&path, &profile).await?;
+            // TODO: Implement scan
         }
         Commands::Profile { action } => {
-            commands::profile_commands::handle_profile_action(action).await?;
+            match action {
+                ProfileAction::List => {
+                    println!("📋 Danh sách profiles:");
+                    println!("  Chức năng này cần project path");
+                }
+                ProfileAction::Create { name } => {
+                    println!("✨ Tạo profile mới: {}", name);
+                }
+                ProfileAction::Delete { name } => {
+                    println!("🗑️  Xóa profile: {}", name);
+                }
+                ProfileAction::Rename { old_name, new_name } => {
+                    println!("✏️  Đổi tên profile: {} -> {}", old_name, new_name);
+                }
+                ProfileAction::Clone { source, target } => {
+                    println!("📋 Clone profile: {} -> {}", source, target);
+                }
+            }
         }
         Commands::Group { action } => {
-            commands::group_commands::handle_group_action(action).await?;
+            println!("🗂️  Group command: {:?}", action);
         }
         Commands::Export { path, profile, group, output } => {
-            commands::project_commands::export_cli(&path, &profile, group.as_deref(), output.as_deref()).await?;
+            println!("📤 Export: path={}, profile={}, group={:?}, output={:?}", path, profile, group, output);
         }
         Commands::Git { action } => {
-            commands::git_commands::handle_git_action(action).await?;
+            println!("🔀 Git command: {:?}", action);
         }
         Commands::Chat { action } => {
-            commands::ai_commands::handle_chat_action(action).await?;
+            println!("💬 Chat command: {:?}", action);
         }
         Commands::Checkpoint { action } => {
-            commands::checkpoint_commands::handle_checkpoint_action(action).await?;
+            println!("📍 Checkpoint command: {:?}", action);
         }
     }
 

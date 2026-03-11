@@ -1,7 +1,5 @@
 // src-tauri/src/commands/project_commands.rs
 use crate::{context_generator, file_cache, models, project_scanner};
-use tauri::{command, AppHandle, Emitter, Manager, Window}; // Add models
-use super::start_file_watching;
 use super::utils::perform_auto_export;
 use std::fs;
 use ignore::WalkBuilder;
@@ -10,108 +8,45 @@ use crate::models::FsEntry;
 use std::fmt::Write as FmtWrite;
 use std::path::Path;
 
-#[command]
-pub fn scan_project(window: Window, path: String, profile_name: String) {
-    let window_clone = window.clone();
-    let path_clone = path.clone();
-    let app = window.app_handle().clone();
+// CLI: Scan project synchronously (no Window/thread)
+pub fn scan_project(path: &str, profile_name: &str) -> Result<models::CachedProjectData, String> {
+    let old_data = file_cache::load_project_data(path, profile_name).unwrap_or_default();
 
-    std::thread::spawn(move || {
-        let old_data = file_cache::load_project_data(&app, &path, &profile_name).unwrap_or_default();
-        let should_start_watching = old_data.is_watching_files.unwrap_or(false);
-
-        // --- THÊM LOGIC ĐỌC CÀI ĐẶT ---
-        // Lấy cài đặt ứng dụng để truyền vào scanner
-        let app_settings = super::settings_commands::get_app_settings(app.clone()).unwrap_or_default();
-        
-        match project_scanner::perform_smart_scan_and_rebuild(
-            &window, 
-            &path, 
-            old_data,
-            project_scanner::ScanOptions {
-                user_non_analyzable_extensions: app_settings.non_analyzable_extensions,
-            }
-        ) {
-            Ok((new_data, is_first_scan)) => { // <-- Nhận thêm cờ is_first_scan
-                if let Err(e) = file_cache::save_project_data(&app, &path, &profile_name, &new_data) {
-                    let _ = window.emit("scan_error", e);
-                    return;
-                }
-
-                if new_data.sync_enabled.unwrap_or(false) && new_data.sync_path.is_some() {
-                    perform_auto_export(&path, &profile_name, &new_data);
-                }
-                
-                // --- GỬI PAYLOAD MỚI VỀ FRONTEND ---
-                let _ = window.emit("scan_complete", serde_json::json!({
-                    "projectData": new_data,
-                    "isFirstScan": is_first_scan
-                }));
-
-                if should_start_watching {
-                    if let Err(e) = start_file_watching(window_clone, path_clone) {
-                        println!("[Error] Auto-starting watcher failed: {}", e);
-                    }
-                }
-            }
-            Err(e) => {
-                let _ = window.emit("scan_error", e);
-            }
+    // Lấy cài đặt ứng dụng để truyền vào scanner
+    let app_settings = super::settings_commands::get_app_settings().unwrap_or_default();
+    
+    let (new_data, _is_first_scan) = project_scanner::perform_smart_scan_and_rebuild(
+        path, 
+        old_data,
+        project_scanner::ScanOptions {
+            user_non_analyzable_extensions: app_settings.non_analyzable_extensions,
         }
-    });
+    )?;
+
+    file_cache::save_project_data(path, profile_name, &new_data)?;
+
+    if new_data.sync_enabled.unwrap_or(false) && new_data.sync_path.is_some() {
+        perform_auto_export(path, profile_name, &new_data);
+    }
+
+    Ok(new_data)
 }
 
-#[command]
-pub fn start_project_export(window: Window, app: AppHandle, path: String, profile_name: String) {
-    std::thread::spawn(move || {
-        let result: Result<String, String> = (|| {
-            let project_data = file_cache::load_project_data(&app, &path, &profile_name)?;
-            let with_line_numbers = project_data.export_with_line_numbers.unwrap_or(true);
-            let without_comments = project_data.export_without_comments.unwrap_or(false);
-            let remove_debug_logs = project_data.export_remove_debug_logs.unwrap_or(false);
-            let super_compressed = project_data.export_super_compressed.unwrap_or(false);
-            let always_apply_text = project_data.always_apply_text;
-            let exclude_extensions = project_data.export_exclude_extensions;
-            let all_files: Vec<String> = project_data.file_metadata_cache.keys().cloned().collect();
-            if all_files.is_empty() {
-                return Err("project.export_no_files".to_string());
-            }
-            context_generator::generate_context_from_files(
-                &path,
-                &all_files,
-                true,
-                &project_data.file_tree,
-                with_line_numbers,
-                without_comments,
-                remove_debug_logs,
-                super_compressed,
-                &always_apply_text,
-                &exclude_extensions,
-                &project_data.file_metadata_cache,
-            )
-        })();
-        match result {
-            Ok(context) => {
-                let _ = window.emit("project_export_complete", context);
-            }
-            Err(e) => {
-                let _ = window.emit("project_export_error", e);
-            }
-        }
-    });
-}
-
-#[command]
-pub fn generate_project_context(app: AppHandle, path: String, profile_name: String, with_line_numbers: bool, without_comments: bool, remove_debug_logs: bool, super_compressed: bool) -> Result<String, String> {
-    let project_data = file_cache::load_project_data(&app, &path, &profile_name)?;
+// CLI: Export project synchronously
+pub fn start_project_export(path: &str, profile_name: &str) -> Result<String, String> {
+    let project_data = file_cache::load_project_data(path, profile_name)?;
+    let with_line_numbers = project_data.export_with_line_numbers.unwrap_or(true);
+    let without_comments = project_data.export_without_comments.unwrap_or(false);
+    let remove_debug_logs = project_data.export_remove_debug_logs.unwrap_or(false);
+    let super_compressed = project_data.export_super_compressed.unwrap_or(false);
     let always_apply_text = project_data.always_apply_text;
     let exclude_extensions = project_data.export_exclude_extensions;
     let all_files: Vec<String> = project_data.file_metadata_cache.keys().cloned().collect();
     if all_files.is_empty() {
-        return Err("project.generate_context_no_files".to_string());
+        return Err("project.export_no_files".to_string());
     }
     context_generator::generate_context_from_files(
-        &path,
+        path,
         &all_files,
         true,
         &project_data.file_tree,
@@ -125,9 +60,31 @@ pub fn generate_project_context(app: AppHandle, path: String, profile_name: Stri
     )
 }
 
-#[command]
-pub fn delete_project_data(app: AppHandle, path: String) -> Result<(), String> {
-    let project_config_dir = file_cache::get_project_config_dir(&app, &path)?;
+pub fn generate_project_context(path: &str, profile_name: &str, with_line_numbers: bool, without_comments: bool, remove_debug_logs: bool, super_compressed: bool) -> Result<String, String> {
+    let project_data = file_cache::load_project_data(path, profile_name)?;
+    let always_apply_text = project_data.always_apply_text;
+    let exclude_extensions = project_data.export_exclude_extensions;
+    let all_files: Vec<String> = project_data.file_metadata_cache.keys().cloned().collect();
+    if all_files.is_empty() {
+        return Err("project.generate_context_no_files".to_string());
+    }
+    context_generator::generate_context_from_files(
+        path,
+        &all_files,
+        true,
+        &project_data.file_tree,
+        with_line_numbers,
+        without_comments,
+        remove_debug_logs,
+        super_compressed,
+        &always_apply_text,
+        &exclude_extensions,
+        &project_data.file_metadata_cache,
+    )
+}
+
+pub fn delete_project_data(path: &str) -> Result<(), String> {
+    let project_config_dir = file_cache::get_project_config_dir(path)?;
     if project_config_dir.exists() {
         fs::remove_dir_all(&project_config_dir)
             .map_err(|e| format!("Không thể xóa dữ liệu dự án: {}", e))?;
@@ -135,14 +92,12 @@ pub fn delete_project_data(app: AppHandle, path: String) -> Result<(), String> {
     Ok(())
 }
 
-#[command]
 pub fn get_file_content(root_path_str: String, file_rel_path: String) -> Result<String, String> {
     let root_path = std::path::Path::new(&root_path_str);
     let full_path = root_path.join(file_rel_path);
     fs::read_to_string(full_path).map_err(|e| format!("Không thể đọc file: {}", e))
 }
 
-#[command]
 pub fn read_file_with_lines(
     root_path_str: String,
     file_rel_path: String,
@@ -172,7 +127,6 @@ pub fn read_file_with_lines(
     Ok(lines[start_index..end_index].join("\n"))
 }
 
-#[command]
 pub fn save_file_content(
     root_path_str: String,
     file_rel_path: String,
@@ -186,7 +140,7 @@ pub fn save_file_content(
     }
     fs::write(full_path, content).map_err(|e| format!("Không thể ghi file: {}", e))
 }
-#[command]
+
 pub fn generate_directory_tree(
     root_path_str: String,
     dir_rel_path: String,
@@ -256,7 +210,7 @@ pub fn generate_directory_tree(
     let root_name = Path::new(&dir_rel_path).file_name().unwrap_or_default().to_string_lossy();
     Ok(format!("{}/\n{}", root_name, directory_structure))
 }
-#[command]
+
 pub fn create_file(
     root_path_str: String,
     file_rel_path: String,
@@ -271,7 +225,6 @@ pub fn create_file(
     fs::write(full_path, content).map_err(|e| format!("Không thể tạo file: {}", e))
 }
 
-#[command]
 pub fn delete_file(root_path_str: String, file_rel_path: String) -> Result<(), String> {
     let root_path = std::path::Path::new(&root_path_str);
     let full_path = root_path.join(file_rel_path);
@@ -281,15 +234,14 @@ pub fn delete_file(root_path_str: String, file_rel_path: String) -> Result<(), S
         Ok(()) // File không tồn tại, coi như đã xóa thành công
     }
 }
-#[command]
+
 pub fn update_file_exclusions(
-    app: AppHandle,
-    path: String,
-    profile_name: String,
+    path: &str,
+    profile_name: &str,
     file_rel_path: String,
     ranges: Vec<(usize, usize)>,
 ) -> Result<models::FileMetadata, String> {
-    let mut project_data = file_cache::load_project_data(&app, &path, &profile_name)?;
+    let mut project_data = file_cache::load_project_data(path, profile_name)?;
 
     let updated_metadata: models::FileMetadata;
 
@@ -305,7 +257,7 @@ pub fn update_file_exclusions(
         ));
     }
 
-    file_cache::save_project_data(&app, &path, &profile_name, &project_data)?;
+    file_cache::save_project_data(path, profile_name, &project_data)?;
 
     Ok(updated_metadata)
 }

@@ -1,21 +1,9 @@
-// src-tauri/src/commands/profile_commands.rs
+// CLI version - converted from Tauri
 use crate::{file_cache, models};
-use sha2::{Digest, Sha256};
 use std::fs;
-use tauri::{command, AppHandle, Manager};
 
-#[command]
-pub fn list_profiles(app: AppHandle, project_path: String) -> Result<Vec<String>, String> {
-    let app_config_dir = app.path()
-        .app_config_dir()
-        .map_err(|e| format!("Không thể xác định thư mục cấu hình ứng dụng: {}", e))?;
-
-    let mut hasher = Sha256::new();
-    hasher.update(project_path.as_bytes());
-    let project_hash = hasher.finalize();
-    let project_id = format!("{:x}", project_hash);
-
-    let config_dir = app_config_dir.join("projects").join(project_id);
+pub fn list_profiles(project_path: &str) -> Result<Vec<String>, String> {
+    let config_dir = file_cache::get_project_config_dir(project_path)?;
 
     let mut profiles = Vec::new();
     if config_dir.exists() {
@@ -38,18 +26,16 @@ pub fn list_profiles(app: AppHandle, project_path: String) -> Result<Vec<String>
     Ok(profiles)
 }
 
-#[command]
-pub fn create_profile(app: AppHandle, project_path: String, profile_name: String) -> Result<(), String> {
+pub fn create_profile(project_path: &str, profile_name: &str) -> Result<(), String> {
     let data = models::CachedProjectData::default();
-    file_cache::save_project_data(&app, &project_path, &profile_name, &data)
+    file_cache::save_project_data(project_path, profile_name, &data)
 }
 
-#[command]
-pub fn delete_profile(app: AppHandle, project_path: String, profile_name: String) -> Result<(), String> {
+pub fn delete_profile(project_path: &str, profile_name: &str) -> Result<(), String> {
     if profile_name == "default" {
         return Err("profile.cannot_delete_default".to_string());
     }
-    let config_path = file_cache::get_project_config_path(&app, &project_path, &profile_name)?;
+    let config_path = file_cache::get_project_config_path(project_path, profile_name)?;
     if config_path.exists() {
         fs::remove_file(config_path).map_err(|e| e.to_string())
     } else {
@@ -57,18 +43,16 @@ pub fn delete_profile(app: AppHandle, project_path: String, profile_name: String
     }
 }
 
-#[command]
 pub fn rename_profile(
-    app: AppHandle,
-    project_path: String,
-    old_name: String,
-    new_name: String,
+    project_path: &str,
+    old_name: &str,
+    new_name: &str,
 ) -> Result<(), String> {
     if old_name == "default" {
         return Err("profile.cannot_rename_default".to_string());
     }
-    let old_path = file_cache::get_project_config_path(&app, &project_path, &old_name)?;
-    let new_path = file_cache::get_project_config_path(&app, &project_path, &new_name)?;
+    let old_path = file_cache::get_project_config_path(project_path, old_name)?;
+    let new_path = file_cache::get_project_config_path(project_path, new_name)?;
     if !old_path.exists() {
         return Err("profile.old_not_exist".to_string());
     }
@@ -78,24 +62,20 @@ pub fn rename_profile(
     fs::rename(old_path, new_path).map_err(|e| e.to_string())
 }
 
-#[command]
 pub fn list_groups_for_profile(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
 ) -> Result<Vec<models::Group>, String> {
-    let project_data = file_cache::load_project_data(&app, &project_path, &profile_name)?;
+    let project_data = file_cache::load_project_data(project_path, profile_name)?;
     Ok(project_data.groups)
 }
 
-#[command]
 pub fn clone_profile(
-    app: AppHandle,
-    project_path: String,
-    source_profile_name: String,
-    new_profile_name: String,
+    project_path: &str,
+    source_profile_name: &str,
+    new_profile_name: &str,
 ) -> Result<(), String> {
-    let source_data = file_cache::load_project_data(&app, &project_path, &source_profile_name)?;
+    let source_data = file_cache::load_project_data(project_path, source_profile_name)?;
 
     let new_data = models::CachedProjectData {
         stats: source_data.stats,
@@ -118,14 +98,12 @@ pub fn clone_profile(
         git_export_mode_is_context: Some(false),
     };
 
-    file_cache::save_project_data(&app, &project_path, &new_profile_name, &new_data)
+    file_cache::save_project_data(project_path, new_profile_name, &new_data)
 }
 
-#[command]
 pub fn load_profile_data(
-    app: AppHandle,
-    project_path: String,
-    profile_name: String,
+    project_path: &str,
+    profile_name: &str,
 ) -> Result<models::CachedProjectData, String> {
-    file_cache::load_project_data(&app, &project_path, &profile_name)
+    file_cache::load_project_data(project_path, profile_name)
 }

@@ -2,12 +2,10 @@
 
 use crate::models::{self, FsEntry, GitStatus};
 use std::path::Path;
-use tauri::command;
 use std::collections::BTreeMap;
 use git2::{Repository, StatusOptions, Status};
 use std::fmt::Write as FmtWrite;
 
-#[command]
 pub fn check_git_repository(path: String) -> Result<models::GitRepositoryInfo, String> {
     let repo = match git2::Repository::open(&path) {
         Ok(repo) => repo,
@@ -58,7 +56,6 @@ pub fn check_git_repository(path: String) -> Result<models::GitRepositoryInfo, S
     })
 }
 
-#[command]
 pub fn get_git_commits(
     path: String,
     page: usize,
@@ -97,7 +94,6 @@ pub fn get_git_commits(
     Ok(commits)
 }
 
-#[command]
 pub fn get_commit_diff(path: String, commit_sha: String) -> Result<String, String> {
     let repo_path = Path::new(&path);
     let repo = git2::Repository::open(repo_path).map_err(|e| e.to_string())?;
@@ -194,7 +190,6 @@ fn build_and_format_tree(paths: &[String]) -> String {
     directory_structure
 }
 
-#[command]
 pub fn generate_commit_context(path: String, commit_sha: String) -> Result<String, String> {
     let repo_path = Path::new(&path);
     let repo = git2::Repository::open(repo_path).map_err(|e| e.to_string())?;
@@ -340,7 +335,6 @@ pub fn generate_commit_context(path: String, commit_sha: String) -> Result<Strin
     Ok(final_context)
 }
 
-#[command]
 pub fn checkout_commit(path: String, commit_sha: String) -> Result<(), String> {
     let repo = Repository::open(&path).map_err(|e| format!("Failed to open repository: {}", e))?;
 
@@ -370,7 +364,6 @@ pub fn checkout_commit(path: String, commit_sha: String) -> Result<(), String> {
     Ok(())
 }
 
-#[command]
 pub fn checkout_branch(path: String, branch: String) -> Result<(), String> {
     let repo = Repository::open(&path).map_err(|e| format!("Không thể mở kho Git: {}", e))?;
 
@@ -395,7 +388,6 @@ pub fn checkout_branch(path: String, branch: String) -> Result<(), String> {
     Ok(())
 }
 
-#[command]
 pub fn get_git_status(path: String) -> Result<GitStatus, String> {
     let repo = git2::Repository::open(&path).map_err(|e| e.to_string())?;
     
@@ -432,7 +424,6 @@ pub fn get_git_status(path: String) -> Result<GitStatus, String> {
     Ok(GitStatus { files: files_status_map })
 }
 
-#[command]
 pub fn clone_git_repository(url: String, path: String) -> Result<(), String> {
     // The path is the full destination path.
     // The `git2::Repository::clone` function will create this directory.

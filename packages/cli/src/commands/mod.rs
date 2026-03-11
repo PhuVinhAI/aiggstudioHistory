@@ -1,13 +1,13 @@
-// src-tauri/src/commands/mod.rs
-mod ai_commands;
-mod checkpoint_commands;
-mod git_commands;
-mod group_commands;
-mod profile_commands;
-mod project_commands;
-mod settings_commands;
-mod utils;
-mod watcher_commands;
+// CLI version
+pub mod ai_commands;
+pub mod checkpoint_commands;
+pub mod git_commands;
+pub mod group_commands;
+pub mod profile_commands;
+pub mod project_commands;
+pub mod settings_commands;
+pub mod utils;
+pub mod watcher_commands;
 
 pub use ai_commands::*;
 pub use checkpoint_commands::*;

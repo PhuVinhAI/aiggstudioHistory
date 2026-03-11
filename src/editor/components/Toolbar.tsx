@@ -12,6 +12,7 @@ export function Toolbar() {
     chatTurns,
     selectedTurns,
     showThinking,
+    exportThinkingMap,
     includeImages,
     includePDFs,
     driveToken,
@@ -24,7 +25,6 @@ export function Toolbar() {
 
   const handleExport = async () => {
     try {
-      // Lọc chỉ những turns được chọn
       const turnsToExport = chatTurns.filter((_: ChatTurn, index: number) => selectedTurns.has(index));
       
       if (turnsToExport.length === 0) {
@@ -32,15 +32,19 @@ export function Toolbar() {
         return;
       }
 
-      // Nếu không show thinking, xóa thoughts khỏi turns
-      const processedTurns = showThinking 
-        ? turnsToExport 
-        : turnsToExport.map((turn: ChatTurn) => ({ ...turn, thoughts: undefined }));
+      // Tạo map mới với index tương ứng của turnsToExport
+      const exportMap = new Map<number, boolean>();
+      turnsToExport.forEach((turn: ChatTurn, newIndex: number) => {
+        const originalIndex = chatTurns.indexOf(turn);
+        const shouldExport = exportThinkingMap.get(originalIndex) ?? true;
+        exportMap.set(newIndex, shouldExport);
+      });
 
       await exportChat(
-        processedTurns,
+        turnsToExport,
         { includeImages, includePDFs },
-        driveToken || undefined
+        driveToken || undefined,
+        exportMap
       );
       
       toast.success('Export thành công!');
@@ -80,7 +84,7 @@ export function Toolbar() {
               onCheckedChange={setShowThinking}
             />
             <Label htmlFor="show-thinking" className="text-sm">
-              Hiện thinking
+              Export thinking
             </Label>
           </div>
           

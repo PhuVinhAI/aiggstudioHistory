@@ -4,6 +4,7 @@ import type { ChatTurn } from '@/types';
 interface EditorState {
   chatTurns: ChatTurn[];
   selectedTurns: Set<number>;
+  exportThinkingMap: Map<number, boolean>; // Map turn index -> export thinking
   showThinking: boolean;
   includeImages: boolean;
   includePDFs: boolean;
@@ -14,6 +15,8 @@ interface EditorState {
   toggleTurnSelection: (index: number) => void;
   selectAllTurns: () => void;
   deselectAllTurns: () => void;
+  setExportThinking: (index: number, value: boolean) => void;
+  toggleAllThinking: () => void;
   setShowThinking: (show: boolean) => void;
   setIncludeImages: (include: boolean) => void;
   setIncludePDFs: (include: boolean) => void;
@@ -25,12 +28,25 @@ interface EditorState {
 export const useEditorStore = create<EditorState>((set) => ({
   chatTurns: [],
   selectedTurns: new Set(),
+  exportThinkingMap: new Map(),
   showThinking: true,
   includeImages: true,
   includePDFs: true,
   driveToken: '',
   
-  setChatTurns: (turns) => set({ chatTurns: turns, selectedTurns: new Set(turns.map((_, i) => i)) }),
+  setChatTurns: (turns) => {
+    const thinkingMap = new Map<number, boolean>();
+    turns.forEach((turn, i) => {
+      if (turn.thoughts) {
+        thinkingMap.set(i, true); // Mặc định export thinking
+      }
+    });
+    set({ 
+      chatTurns: turns, 
+      selectedTurns: new Set(turns.map((_, i) => i)),
+      exportThinkingMap: thinkingMap
+    });
+  },
   
   toggleTurnSelection: (index) => set((state) => {
     const newSelected = new Set(state.selectedTurns);
@@ -48,7 +64,24 @@ export const useEditorStore = create<EditorState>((set) => ({
   
   deselectAllTurns: () => set({ selectedTurns: new Set() }),
   
-  setShowThinking: (show) => set({ showThinking: show }),
+  setExportThinking: (index, value) => set((state) => {
+    const newMap = new Map(state.exportThinkingMap);
+    newMap.set(index, value);
+    return { exportThinkingMap: newMap };
+  }),
+  
+  toggleAllThinking: () => set((state) => {
+    const newMap = new Map(state.exportThinkingMap);
+    const allChecked = Array.from(newMap.values()).every(v => v);
+    newMap.forEach((_, key) => newMap.set(key, !allChecked));
+    return { exportThinkingMap: newMap, showThinking: !allChecked };
+  }),
+  
+  setShowThinking: (show) => set((state) => {
+    const newMap = new Map(state.exportThinkingMap);
+    newMap.forEach((_, key) => newMap.set(key, show));
+    return { showThinking: show, exportThinkingMap: newMap };
+  }),
   setIncludeImages: (include) => set({ includeImages: include }),
   setIncludePDFs: (include) => set({ includePDFs: include }),
   setDriveToken: (token) => set({ driveToken: token }),

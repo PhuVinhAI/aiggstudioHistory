@@ -12,10 +12,29 @@ export default function Popup() {
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
   const [saved, setSaved] = useState(false);
+  const [autoDetected, setAutoDetected] = useState(false);
 
   useEffect(() => {
     loadData();
     getCurrentTabUrl();
+    
+    // Lắng nghe thay đổi token từ storage
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.driveToken) {
+        const newToken = changes.driveToken.newValue as string | undefined;
+        setDriveToken(newToken || '');
+        if (newToken) {
+          setAutoDetected(true);
+          setTimeout(() => setAutoDetected(false), 3000);
+        }
+      }
+    };
+    
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   const loadData = async () => {
@@ -81,11 +100,14 @@ export default function Popup() {
                 className="h-8"
               >
                 <Key className="h-3 w-3 mr-2" />
-                {driveToken ? 'Đã có token' : 'Nhập token'}
+                {autoDetected ? 'Tự động phát hiện!' : driveToken ? 'Đã có token' : 'Nhập token'}
               </Button>
             </CardTitle>
             <CardDescription className="text-xs">
-              Token cần thiết để tải file từ Drive
+              {autoDetected 
+                ? 'Token đã được tự động lấy từ AI Studio' 
+                : 'Token cần thiết để tải file từ Drive'
+              }
             </CardDescription>
           </CardHeader>
 

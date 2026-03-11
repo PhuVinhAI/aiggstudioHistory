@@ -4,7 +4,8 @@ import type { ChatTurn, ExportConfig } from '../types';
 export async function exportChat(
   chatTurns: ChatTurn[],
   config: ExportConfig,
-  driveToken?: string
+  driveToken?: string,
+  exportThinkingMap?: Map<number, boolean>
 ): Promise<void> {
   // Check if we have any Drive files
   const hasDriveFiles = chatTurns.some(turn => 
@@ -14,25 +15,29 @@ export async function exportChat(
   );
 
   if (hasDriveFiles && config.includeImages) {
-    await exportAsZip(chatTurns, config, driveToken);
+    await exportAsZip(chatTurns, config, driveToken, exportThinkingMap);
   } else {
-    await exportAsMarkdown(chatTurns);
+    await exportAsMarkdown(chatTurns, exportThinkingMap);
   }
 }
 
-async function exportAsMarkdown(chatTurns: ChatTurn[]): Promise<void> {
+async function exportAsMarkdown(chatTurns: ChatTurn[], exportThinkingMap?: Map<number, boolean>): Promise<void> {
   let markdown = `# Lịch sử chat: AI Studio\n\n`;
   markdown += `Xuất lúc: ${new Date().toLocaleString('vi-VN')}\n\n---\n\n`;
 
-  for (const turn of chatTurns) {
+  for (let i = 0; i < chatTurns.length; i++) {
+    const turn = chatTurns[i];
     markdown += `## ${turn.role === 'user' ? 'User' : 'Model'}:\n\n`;
     
-    if (turn.content) {
-      markdown += `${turn.content}\n\n`;
+    // Export thinking TRƯỚC (nếu được chọn)
+    const shouldExportThinking = exportThinkingMap?.get(i) ?? true;
+    if (turn.thoughts && shouldExportThinking) {
+      markdown += `<details>\n<summary>Thinking Process</summary>\n\n${turn.thoughts}\n\n</details>\n\n`;
     }
 
-    if (turn.thoughts) {
-      markdown += `<details>\n<summary>Thinking Process</summary>\n\n${turn.thoughts}\n\n</details>\n\n`;
+    // Export response SAU
+    if (turn.content) {
+      markdown += `${turn.content}\n\n`;
     }
 
     if (turn.attachments && turn.attachments.length > 0) {
@@ -58,7 +63,8 @@ async function exportAsMarkdown(chatTurns: ChatTurn[]): Promise<void> {
 async function exportAsZip(
   chatTurns: ChatTurn[],
   config: ExportConfig,
-  driveToken?: string
+  driveToken?: string,
+  exportThinkingMap?: Map<number, boolean>
 ): Promise<void> {
   const zip = new JSZip();
   
@@ -87,15 +93,19 @@ async function exportAsZip(
   let markdown = `# Lịch sử chat: AI Studio\n\n`;
   markdown += `Xuất lúc: ${new Date().toLocaleString('vi-VN')}\n\n---\n\n`;
 
-  for (const turn of chatTurns) {
+  for (let i = 0; i < chatTurns.length; i++) {
+    const turn = chatTurns[i];
     markdown += `## ${turn.role === 'user' ? 'User' : 'Model'}:\n\n`;
     
-    if (turn.content) {
-      markdown += `${turn.content}\n\n`;
+    // Export thinking TRƯỚC (nếu được chọn)
+    const shouldExportThinking = exportThinkingMap?.get(i) ?? true;
+    if (turn.thoughts && shouldExportThinking) {
+      markdown += `<details>\n<summary>Thinking Process</summary>\n\n${turn.thoughts}\n\n</details>\n\n`;
     }
 
-    if (turn.thoughts) {
-      markdown += `<details>\n<summary>Thinking Process</summary>\n\n${turn.thoughts}\n\n</details>\n\n`;
+    // Export response SAU
+    if (turn.content) {
+      markdown += `${turn.content}\n\n`;
     }
 
     if (turn.attachments && turn.attachments.length > 0) {

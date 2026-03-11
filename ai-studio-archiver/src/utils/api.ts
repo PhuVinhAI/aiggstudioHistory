@@ -20,51 +20,6 @@ export async function fetchPromptDataFromDrive(promptId: string, token?: string)
   }
 }
 
-export function cleanPromptData(data: PromptData): any {
-  // Chỉ giữ lại thông tin cần thiết
-  const cleaned = {
-    model: data.runSettings?.model || 'unknown',
-    temperature: data.runSettings?.temperature,
-    systemInstruction: data.systemInstruction,
-    conversation: [] as any[]
-  };
-
-  // Xử lý chunks
-  for (const chunk of data.chunkedPrompt.chunks) {
-    if (!chunk.text && !chunk.parts) continue;
-
-    const message: any = {
-      role: chunk.role,
-      content: ''
-    };
-
-    // Lấy nội dung
-    if (chunk.parts) {
-      const textParts = chunk.parts.filter(p => !p.thought);
-      const thoughtParts = chunk.parts.filter(p => p.thought);
-      
-      message.content = textParts.map(p => p.text).join('');
-      
-      if (thoughtParts.length > 0) {
-        message.thinking = thoughtParts.map(p => p.text).join('');
-      }
-    } else if (chunk.text) {
-      if (chunk.isThought) {
-        message.thinking = chunk.text;
-      } else {
-        message.content = chunk.text;
-      }
-    }
-
-    // Chỉ thêm nếu có nội dung
-    if (message.content || message.thinking) {
-      cleaned.conversation.push(message);
-    }
-  }
-
-  return cleaned;
-}
-
 export function convertPromptDataToChatTurns(data: PromptData): ChatTurn[] {
   const chatTurns: ChatTurn[] = [];
   const chunks = data.chunkedPrompt.chunks;

@@ -9,6 +9,7 @@ pub mod settings_commands;
 pub mod utils;
 pub mod watcher_commands;
 
+// Re-export tất cả để có full tính năng
 pub use ai_commands::*;
 pub use checkpoint_commands::*;
 pub use git_commands::*;

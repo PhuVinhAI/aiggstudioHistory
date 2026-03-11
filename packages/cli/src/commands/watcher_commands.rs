@@ -1,7 +1,7 @@
 // src-tauri/src/commands/watcher_commands.rs
 // CLI version - file watching removed (not applicable for CLI)
 use lazy_static::lazy_static;
-use notify::{RecommendedWatcher, Watcher};
+use notify::RecommendedWatcher;
 use std::sync::Mutex;
 use std::time::Instant;
 
@@ -11,7 +11,7 @@ lazy_static! {
 }
 
 // CLI: File watching không có ý nghĩa trong CLI, nhưng giữ lại function signature để tương thích
-pub fn start_file_watching(path: String) -> Result<(), String> {
+pub fn start_file_watching(_path: String) -> Result<(), String> {
     println!("[CLI] File watching is not supported in CLI mode");
     Ok(())
 }

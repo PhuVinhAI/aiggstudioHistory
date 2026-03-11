@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Download, CheckSquare, Square } from 'lucide-react';
+import { Download, CheckSquare, Square, RotateCcw, Loader2 } from 'lucide-react';
 import { useEditorStore } from '@/lib/store';
 import { exportChat } from '@/utils/export';
 import { toast } from 'sonner';
+import { useState } from 'react';
 import type { ChatTurn } from '@/types';
 
 export function Toolbar() {
@@ -18,13 +19,17 @@ export function Toolbar() {
     driveToken,
     selectAllTurns,
     deselectAllTurns,
+    restoreOriginalData,
     setShowThinking,
     setIncludeImages,
     setIncludePDFs,
   } = useEditorStore();
+  
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
     try {
+      setIsExporting(true);
       const turnsToExport = chatTurns.filter((_: ChatTurn, index: number) => selectedTurns.has(index));
       
       if (turnsToExport.length === 0) {
@@ -50,7 +55,14 @@ export function Toolbar() {
       toast.success('Export thành công!');
     } catch (error) {
       toast.error('Export thất bại: ' + (error as Error).message);
+    } finally {
+      setIsExporting(false);
     }
+  };
+  
+  const handleRestore = () => {
+    restoreOriginalData();
+    toast.success('Đã khôi phục dữ liệu gốc!');
   };
 
   const allSelected = selectedTurns.size === chatTurns.length;
@@ -63,6 +75,7 @@ export function Toolbar() {
             variant="outline"
             size="sm"
             onClick={allSelected ? deselectAllTurns : selectAllTurns}
+            disabled={isExporting}
           >
             {allSelected ? (
               <>
@@ -75,6 +88,16 @@ export function Toolbar() {
                 Chọn tất cả
               </>
             )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRestore}
+            disabled={isExporting}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Khôi phục
           </Button>
           
           <div className="flex items-center gap-2">
@@ -111,9 +134,18 @@ export function Toolbar() {
           </div>
         </div>
 
-        <Button onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" />
-          Export ({selectedTurns.size}/{chatTurns.length})
+        <Button onClick={handleExport} disabled={isExporting}>
+          {isExporting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Đang xuất...
+            </>
+          ) : (
+            <>
+              <Download className="mr-2 h-4 w-4" />
+              Export ({selectedTurns.size}/{chatTurns.length})
+            </>
+          )}
         </Button>
       </div>
     </div>

@@ -3,6 +3,7 @@ import type { ChatTurn } from '@/types';
 
 interface EditorState {
   chatTurns: ChatTurn[];
+  originalChatTurns: ChatTurn[]; // Lưu data gốc để restore
   selectedTurns: Set<number>;
   exportThinkingMap: Map<number, boolean>; // Map turn index -> export thinking
   showThinking: boolean;
@@ -12,6 +13,7 @@ interface EditorState {
   
   // Actions
   setChatTurns: (turns: ChatTurn[]) => void;
+  restoreOriginalData: () => void;
   toggleTurnSelection: (index: number) => void;
   selectAllTurns: () => void;
   deselectAllTurns: () => void;
@@ -27,6 +29,7 @@ interface EditorState {
 
 export const useEditorStore = create<EditorState>((set) => ({
   chatTurns: [],
+  originalChatTurns: [],
   selectedTurns: new Set(),
   exportThinkingMap: new Map(),
   showThinking: true,
@@ -42,11 +45,27 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     });
     set({ 
-      chatTurns: turns, 
+      chatTurns: turns,
+      originalChatTurns: JSON.parse(JSON.stringify(turns)), // Deep clone để lưu data gốc
       selectedTurns: new Set(turns.map((_, i) => i)),
       exportThinkingMap: thinkingMap
     });
   },
+  
+  restoreOriginalData: () => set((state) => {
+    const turns = JSON.parse(JSON.stringify(state.originalChatTurns)); // Deep clone
+    const thinkingMap = new Map<number, boolean>();
+    turns.forEach((turn: ChatTurn, i: number) => {
+      if (turn.thoughts) {
+        thinkingMap.set(i, true);
+      }
+    });
+    return {
+      chatTurns: turns,
+      selectedTurns: new Set(turns.map((_: ChatTurn, i: number) => i)),
+      exportThinkingMap: thinkingMap
+    };
+  }),
   
   toggleTurnSelection: (index) => set((state) => {
     const newSelected = new Set(state.selectedTurns);

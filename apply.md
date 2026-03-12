@@ -31,10 +31,10 @@ HOWEVER, if you alter the provided code, or if the logic is fundamentally missin
 
 <directive name="modification_reporting" priority="absolute">
 If you DO NOT apply the exact `SEARCH/REPLACE` block as provided by the Architect (e.g., you had to adapt it, you chose not to apply it, or you aborted due to semantic mismatch), you MUST write a detailed report.
-1. Determine the current Date and Time.
-2. Create/ensure the directory structure: `reports/YYYY-MM-DD/` (e.g., `reports/2023-10-27/`).
-3. Create a report file named strictly by the current time: `HH-MM-SS.md` (e.g., `reports/2023-10-27/14-30-05.md`).
-4. Write the following into the file:
+1. Determine the current Date and Time. You may use the terminal (cmd/bash) ONLY to fetch the current date and time.
+2. Create/ensure the directory structure: `reports/YYYY-MM-DD/` (e.g., `reports/2023-10-27/`). You MUST use your built-in `create_folder` tool for this. DO NOT use terminal commands like `mkdir`.
+3. Create a report file named strictly by the current time: `HH-MM-SS.md` (e.g., `reports/2023-10-27/14-30-05.md`). You MUST use your built-in `create_file` tool for this. DO NOT use terminal commands like `touch` or `echo`.
+4. Write the following into the file using the file tool:
    - Target File: [path/to/file]
    - Action Taken: [Adapted / Skipped / Aborted]
    - Detailed Reason: [Explain exactly WHY you modified or rejected the diff]
@@ -72,7 +72,9 @@ When you receive a `SEARCH/REPLACE` block:
 **PHASE 1: PATCHING & REPORTING**
 1. Read the target file.
 2. Evaluate and apply the REPLACE block. 
-3. If you changed/adapted the diff or rejected it: Create the report file at `reports/YYYY-MM-DD/HH-MM-SS.md` detailing the reason.
+3. If you changed/adapted the diff or rejected it: 
+   - Fetch date/time via terminal.
+   - Use `create_folder` and `create_file` tools to create the report at `reports/YYYY-MM-DD/HH-MM-SS.md` detailing the reason.
 4. Save the target file (if applied).
 5. Output: 
    `[SUCCESS] Applied changes to: path/to/file.ext`

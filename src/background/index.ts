@@ -3,7 +3,23 @@ import { extractPromptIdFromUrl, convertPromptDataToChatTurns } from '../utils/a
 // Dùng 1 icon PNG chuẩn bằng Base64 để tránh lỗi SVG của Chrome Notifications
 const ICON_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAxElEQVR4nO3VQWpCQRSG4W/oBlp0FV0h1xHcg5uRuBE30E2IuI7uIt0iXTToIjhwwV+YkPBT34Vzwg+XGZ6Z18MwDEe0cIUTTnjBByZou4g7rOGG5/KdcMQh0h7e8VnK11iU8jFqA1zjP3zjPXXMFT4x6yJu8IEZrnGHGzS7iHss8YgrXOE2/Vlww7yLeMAWd+G1Rz1g+y/wI14yE10cK2Y4x6tq7B1H2FfX2FeX2FeX2FeX2FeX2FeX2JfvAafKx1j1Xb3fX+YfB3hAEX0aFxcAAAAASUVORK5CYII=';
 
-function showNotification(title: string, message: string) {
+async function showNotification(title: string, message: string, type: 'info' | 'error' | 'success' = 'info', tabId?: number) {
+  const payload = { action: 'SHOW_NOTIFICATION', title, message, type };
+
+  if (tabId) {
+    chrome.tabs.sendMessage(tabId, payload).catch(() => fallbackNotification(title, message));
+  } else {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0 && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, payload).catch(() => fallbackNotification(title, message));
+      } else {
+        fallbackNotification(title, message);
+      }
+    });
+  }
+}
+
+function fallbackNotification(title: string, message: string) {
   chrome.notifications.create({
     type: 'basic',
     iconUrl: ICON_BASE64,
@@ -13,9 +29,9 @@ function showNotification(title: string, message: string) {
 }
 
 // Listen for messages from content script
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'executeKiloWorkflow') {
-    executeAutoKiloWorkflow(request.url).catch(console.error);
+    executeAutoKiloWorkflow(request.url, sender.tab?.id).catch(console.error);
     return true;
   }
 
@@ -126,7 +142,7 @@ async function downloadDriveFile(fileId: string, token?: string): Promise<{ data
 
 console.log('AI Studio Chat Archiver: Background service worker started');
 
-async function executeAutoKiloWorkflow(url: string) {
+async function executeAutoKiloWorkflow(url: string, tabId?: number) {
   const promptId = extractPromptIdFromUrl(url);
   if (!promptId) {
     console.error('AutoKilo: Không tìm thấy promptId trên URL');
@@ -136,14 +152,14 @@ async function executeAutoKiloWorkflow(url: string) {
   const result = await chrome.storage.local.get(['driveToken']) as { driveToken?: string };
   const driveToken = result.driveToken;
   if (!driveToken) {
-    showNotification('Lỗi Auto-Kilo', 'Chưa cấu hình Drive Token. Hãy mở Popup extension.');
+    showNotification('Lỗi Auto-Kilo', 'Chưa cấu hình Drive Token. Hãy mở Popup extension.', 'error', tabId);
     return;
   }
 
   try {
     const promptData = await fetchPromptDataFromDrive(promptId, driveToken);
     if (!promptData) {
-      showNotification('Lỗi Auto-Kilo', 'Không thể tải dữ liệu lịch sử chat từ Google Drive.');
+      showNotification('Lỗi Auto-Kilo', 'Không thể tải dữ liệu lịch sử chat từ Google Drive.', 'error', tabId);
       return;
     }
 

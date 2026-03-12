@@ -59,4 +59,62 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
+// Lắng nghe yêu cầu hiển thị Toast Notifications từ Background
+chrome.runtime.onMessage.addListener((request) => {
+  if (request.action === 'SHOW_NOTIFICATION') {
+    showToast(request.title, request.message, request.type);
+  }
+});
+
+function showToast(title: string, message: string, type: 'info' | 'error' | 'success' = 'info') {
+  const toast = document.createElement('div');
+  toast.style.position = 'fixed';
+  toast.style.bottom = '24px';
+  toast.style.right = '24px';
+  toast.style.padding = '16px 20px';
+  toast.style.backgroundColor = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6';
+  toast.style.color = 'white';
+  toast.style.borderRadius = '12px';
+  toast.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+  toast.style.zIndex = '99999999';
+  toast.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+  toast.style.minWidth = '300px';
+  toast.style.maxWidth = '400px';
+  toast.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+  toast.style.transform = 'translateY(100px) scale(0.9)';
+  toast.style.opacity = '0';
+  toast.style.lineHeight = '1.5';
+
+  const titleEl = document.createElement('div');
+  titleEl.style.fontWeight = '600';
+  titleEl.style.fontSize = '15px';
+  titleEl.style.marginBottom = '4px';
+  titleEl.textContent = title;
+
+  const msgEl = document.createElement('div');
+  msgEl.style.fontSize = '14px';
+  msgEl.style.opacity = '0.9';
+  msgEl.textContent = message;
+
+  toast.appendChild(titleEl);
+  toast.appendChild(msgEl);
+  document.body.appendChild(toast);
+
+  // Trigger reflow
+  void toast.offsetWidth;
+
+  // Animate in
+  toast.style.transform = 'translateY(0) scale(1)';
+  toast.style.opacity = '1';
+
+  // Remove after 5 seconds
+  setTimeout(() => {
+    toast.style.transform = 'translateY(20px) scale(0.95)';
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      toast.remove();
+    }, 400);
+  }, 5000);
+}
+
 console.log('🚀 [AI Studio Archiver] Content script initialized with Network Observer.');

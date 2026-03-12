@@ -59,6 +59,9 @@ When providing code changes, you MUST use the exact `SEARCH/REPLACE` block forma
 5. The `>>>>>>> REPLACE` section contains the exact new code.
 
 **Format:**
+You MUST wrap ALL your SEARCH/REPLACE blocks or new file blocks together inside `<<<START OF DIFF>>>` and `<<<END OF DIFF>>>` markers. The downstream agent will ONLY read content inside these markers.
+
+<<<START OF DIFF>>>
 ```language
 # File: path/to/the/file.ext
 <<<<<<< SEARCH
@@ -67,8 +70,10 @@ When providing code changes, you MUST use the exact `SEARCH/REPLACE` block forma
 [Exact lines of new code to replace them, including the same context lines]
 >>>>>>> REPLACE
 ```
+<<<END OF DIFF>>>
 
 *Example:*
+<<<START OF DIFF>>>
 ```javascript
 # File: src/components/Button.tsx
 <<<<<<< SEARCH
@@ -88,8 +93,9 @@ When providing code changes, you MUST use the exact `SEARCH/REPLACE` block forma
     );
 >>>>>>> REPLACE
 ```
+<<<END OF DIFF>>>
 
-*If creating a completely new file, do not use SEARCH/REPLACE. Just output the full file content inside a standard code block, preceded by `# File: path/to/newfile.ext`.*
+*If creating a completely new file, do not use SEARCH/REPLACE. Just output the full file content inside a standard code block, preceded by `# File: path/to/newfile.ext`, but STILL wrap it inside the `<<<START OF DIFF>>>` / `<<<END OF DIFF>>>` markers.*
 </workflow_rules>
 
 <never_ever_do>

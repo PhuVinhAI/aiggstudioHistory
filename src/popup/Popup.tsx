@@ -76,9 +76,20 @@ export default function Popup() {
       if (chatTurns.length === 0) throw new Error('Đoạn chat trống rỗng');
 
       const lastTurn = chatTurns[chatTurns.length - 1];
-      const prompt = lastTurn.content;
+      let prompt = lastTurn.content;
 
       if (!prompt) throw new Error('Tin nhắn cuối cùng bị rỗng');
+
+      // Trích xuất nội dung nằm giữa <<<START OF DIFF>>> và <<<END OF DIFF>>>
+      const diffRegex = /<<<START OF DIFF>>>([\s\S]*?)<<<END OF DIFF>>>/g;
+      const matches = [...prompt.matchAll(diffRegex)];
+      
+      if (matches.length > 0) {
+        // Gộp tất cả các block diff lại nếu AI sinh ra nhiều block
+        prompt = matches.map(m => m[1].trim()).join('\n\n');
+      } else {
+        console.warn('Không tìm thấy block <<<START OF DIFF>>>, fallback gửi toàn bộ nội dung.');
+      }
 
       const response = await fetch('http://localhost:9999/api/kilo', {
         method: 'POST',

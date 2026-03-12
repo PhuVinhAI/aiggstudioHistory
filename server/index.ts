@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { spawn } from 'child_process';
+import os from 'os';
 
 const app = express();
 app.use(cors());
@@ -18,11 +19,16 @@ app.post('/api/kilo', (req, res) => {
   console.log(`=================================================`);
   console.log(`Nhiệm vụ: ${prompt}\n`);
 
+  // Tránh lỗi multiline prompt bị cắt ngang trên terminal bằng cách tắt shell.
+  // Trên Windows, khi không dùng shell, ta phải gọi đích danh file .cmd
+  const isWindows = os.platform() === 'win32';
+  const command = isWindows ? 'kilo.cmd' : 'kilo';
+
   // Chạy lệnh kilo bằng spawn để log thẳng ra terminal hiện tại
-  const kiloProcess = spawn('kilo', ['run', '--auto', prompt, '--print-logs'], {
+  const kiloProcess = spawn(command, ['run', '--auto', prompt, '--print-logs'], {
     cwd: process.cwd(), // Chạy ngay tại thư mục gốc của project
     stdio: 'inherit',   // Kế thừa luồng I/O để in thẳng log ra console
-    shell: true         // Dùng shell để tránh lỗi path trên môi trường Windows
+    shell: false        // Quan trọng: Tắt shell để Node.js tự escape an toàn chuỗi nhiều dòng
   });
 
   kiloProcess.on('error', (err) => {

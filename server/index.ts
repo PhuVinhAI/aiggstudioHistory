@@ -19,7 +19,6 @@ app.post('/api/kilo', (req, res) => {
   console.log(`\n=================================================`);
   console.log(`🤖 KILO CLI ĐƯỢC GỌI TỪ EXTENSION`);
   console.log(`=================================================`);
-  console.log(`Nhiệm vụ: ${prompt}\n`);
 
   const isWindows = os.platform() === 'win32';
   const command = isWindows ? 'kilo.cmd' : 'kilo';
@@ -27,7 +26,7 @@ app.post('/api/kilo', (req, res) => {
   // Lưu prompt (chứa code diff nhiều dòng) vào file tạm
   const tempFileName = `kilo_task_${Date.now()}.txt`;
   const tempFilePath = path.join(process.cwd(), tempFileName);
-  
+
   try {
     fs.writeFileSync(tempFilePath, prompt, 'utf8');
     console.log(`[THÔNG BÁO] Đã lưu nội dung task vào file tạm: ${tempFileName}`);
@@ -42,11 +41,7 @@ app.post('/api/kilo', (req, res) => {
   let kiloProcess;
 
   if (isWindows) {
-    // Dùng cmd.exe /c truyền nguyên chuỗi lệnh để:
-    // 1. Tránh lỗi EINVAL do bảo mật của Node.js với file .cmd
-    // 2. Tránh cảnh báo DeprecationWarning khi dùng shell: true
-    // 3. Giữ nguyên vẹn khoảng trắng trong shortPrompt bằng dấu ngoặc kép
-    // Đã xóa --print-logs để Kilo chỉ in ra text của AI và file thay đổi, không in log hệ thống
+    // Đã xóa --print-logs để Kilo chạy sạch sẽ, không in log hệ thống
     const commandString = `kilo run --auto "${shortPrompt}"`;
     kiloProcess = spawn('cmd.exe', ['/c', commandString], {
       cwd: process.cwd(),
@@ -74,14 +69,14 @@ app.post('/api/kilo', (req, res) => {
         fs.unlinkSync(tempFilePath);
         console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: ${tempFileName}`);
       }
-    } catch {
+    } catch (e) {
       console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
     }
-
-    // Quan trọng: Trả về response cho Extension ngay lập tức để giải phóng HTTP request.
-    // Nhờ vậy Extension không bị treo và có thể tiếp tục gửi task mới. Server tiếp tục lắng nghe.
-    res.json({ success: true, message: 'Đã đưa task cho Kilo xử lý ngầm' });
   });
+
+  // QUAN TRỌNG: Trả về response cho Extension ngay lập tức.
+  // Nhờ vậy Popup không bị loading mãi và Background không bị treo.
+  res.json({ success: true, message: 'Đã đưa task cho Kilo xử lý ngầm' });
 });
 
 app.listen(9999, () => {

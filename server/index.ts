@@ -38,16 +38,28 @@ app.post('/api/kilo', (req, res) => {
 
   // Kilo là AI nên ta chỉ cần bảo nó đọc file là nó sẽ tự động lấy nhiệm vụ (SEARCH/REPLACE)
   const shortPrompt = `Vui lòng đọc và áp dụng chính xác các thay đổi mã nguồn từ file sau: ${tempFilePath}`;
-  const args = ['run', '--auto', shortPrompt, '--print-logs'];
 
-  // Chạy lệnh kilo bằng spawn
-  // Dùng shell: isWindows để Node gọi cmd.exe một cách tự nhiên.
-  // Do shortPrompt là 1 dòng ngắn và không có kí tự đặc biệt (newline, quote), cmd.exe sẽ không bị lỗi EINVAL nữa.
-  const kiloProcess = spawn(command, args, {
-    cwd: process.cwd(),
-    stdio: 'inherit',
-    shell: isWindows 
-  });
+  let kiloProcess;
+
+  if (isWindows) {
+    // Dùng cmd.exe /c truyền nguyên chuỗi lệnh để:
+    // 1. Tránh lỗi EINVAL do bảo mật của Node.js với file .cmd
+    // 2. Tránh cảnh báo DeprecationWarning khi dùng shell: true
+    // 3. Giữ nguyên vẹn khoảng trắng trong shortPrompt bằng dấu ngoặc kép
+    const commandString = `kilo run --auto "${shortPrompt}" --print-logs`;
+    kiloProcess = spawn('cmd.exe', ['/c', commandString], {
+      cwd: process.cwd(),
+      stdio: 'inherit',
+      shell: false
+    });
+  } else {
+    const args = ['run', '--auto', shortPrompt, '--print-logs'];
+    kiloProcess = spawn(command, args, {
+      cwd: process.cwd(),
+      stdio: 'inherit',
+      shell: false 
+    });
+  }
 
   kiloProcess.on('error', (err) => {
     console.error(`\n[LỖI] Không thể khởi chạy Kilo CLI:`, err);

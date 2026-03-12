@@ -139,6 +139,15 @@ async function executeAutoKiloWorkflow(url: string) {
       prompt = matches.map(m => m[1].trim()).join('\n\n');
     }
 
+    // Thông báo bắt đầu chạy
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('vite.svg'),
+      title: 'Auto-Kilo Đang Chạy',
+      message: 'Đang gửi mã nguồn cho Kilo CLI xử lý...'
+    });
+
+    // Sẽ đứng đợi ở đây cho đến khi process của Kilo chạy xong
     const response = await fetch('http://localhost:9999/api/kilo', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -149,8 +158,15 @@ async function executeAutoKiloWorkflow(url: string) {
       chrome.notifications.create({
         type: 'basic',
         iconUrl: chrome.runtime.getURL('vite.svg'),
-        title: 'Auto-Kilo Hoạt Động',
-        message: 'Đã tự động bắt được response mới và gửi lệnh cho Kilo CLI!'
+        title: 'Auto-Kilo Hoàn Thành',
+        message: 'Kilo CLI đã xử lý và áp dụng mã nguồn xong!'
+      });
+    } else {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('vite.svg'),
+        title: 'Auto-Kilo Thất Bại',
+        message: 'Kilo CLI gặp lỗi khi thực thi. Hãy kiểm tra terminal server.'
       });
     }
   } catch (error) {

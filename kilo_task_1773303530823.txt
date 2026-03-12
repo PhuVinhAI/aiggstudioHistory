@@ -1,0 +1,136 @@
+```typescript
+# File: server/index.ts
+<<<<<<< SEARCH
+  kiloProcess.on('error', (err) => {
+    console.error(`\n[LỖI] Không thể khởi chạy Kilo CLI:`, err);
+  });
+
+  kiloProcess.on('close', (code) => {
+    console.log(`\n[THÔNG BÁO] Kilo CLI đã hoàn thành với mã thoát (exit code): ${code}\n`);
+    // Dọn dẹp file tạm
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+        console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: ${tempFileName}`);
+      }
+    } catch (e) {
+      console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
+    }
+  });
+
+  // QUAN TRỌNG: Trả về response cho Extension ngay lập tức.
+  // Nhờ vậy Popup không bị loading mãi và Background không bị treo.
+  res.json({ success: true, message: 'Đã đưa task cho Kilo xử lý ngầm' });
+});
+=======
+  let responded = false;
+
+  kiloProcess.on('error', (err) => {
+    console.error(`\n[LỖI] Không thể khởi chạy Kilo CLI:`, err);
+    if (!responded) {
+      responded = true;
+      res.status(500).json({ error: 'Không thể khởi chạy Kilo CLI' });
+    }
+  });
+
+  kiloProcess.on('close', (code) => {
+    console.log(`\n[THÔNG BÁO] Kilo CLI đã hoàn thành với mã thoát (exit code): ${code}\n`);
+    // Dọn dẹp file tạm
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+        console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: ${tempFileName}`);
+      }
+    } catch (e) {
+      console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
+    }
+
+    // Đợi Kilo xử lý xong mới trả HTTP Response về cho Extension
+    if (!responded) {
+      responded = true;
+      if (code === 0) {
+        res.json({ success: true, message: 'Kilo CLI đã thực thi xong nhiệm vụ' });
+      } else {
+        res.status(500).json({ error: `Kilo CLI kết thúc với lỗi (code: ${code})` });
+      }
+    }
+  });
+});
+>>>>>>> REPLACE
+```
+
+```typescript
+# File: src/background/index.ts
+<<<<<<< SEARCH
+    const response = await fetch('http://localhost:9999/api/kilo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (response.ok) {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('vite.svg'),
+        title: 'Auto-Kilo Hoạt Động',
+        message: 'Đã tự động bắt được response mới và gửi lệnh cho Kilo CLI!'
+      });
+    }
+=======
+    // Thông báo bắt đầu chạy
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('vite.svg'),
+      title: 'Auto-Kilo Đang Chạy',
+      message: 'Đang gửi mã nguồn cho Kilo CLI xử lý...'
+    });
+
+    // Sẽ đứng đợi ở đây cho đến khi process của Kilo chạy xong
+    const response = await fetch('http://localhost:9999/api/kilo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (response.ok) {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('vite.svg'),
+        title: 'Auto-Kilo Hoàn Thành',
+        message: 'Kilo CLI đã xử lý và áp dụng mã nguồn xong!'
+      });
+    } else {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('vite.svg'),
+        title: 'Auto-Kilo Thất Bại',
+        message: 'Kilo CLI gặp lỗi khi thực thi. Hãy kiểm tra terminal server.'
+      });
+    }
+>>>>>>> REPLACE
+```
+
+```typescript
+# File: src/popup/Popup.tsx
+<<<<<<< SEARCH
+      const response = await fetch('http://localhost:9999/api/kilo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!response.ok) throw new Error('Không thể kết nối tới Kilo Server ở cổng 9999');
+      
+      alert('Đã gửi lệnh cho Kilo CLI làm việc! Vui lòng xem terminal chạy server.');
+=======
+      const response = await fetch('http://localhost:9999/api/kilo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!response.ok) throw new Error('Kilo Server báo lỗi hoặc không thể kết nối');
+      
+      alert('Kilo CLI đã xử lý và áp dụng code thành công!');
+>>>>>>> REPLACE
+```

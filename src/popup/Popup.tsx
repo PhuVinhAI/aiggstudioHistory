@@ -100,9 +100,9 @@ export default function Popup() {
         body: JSON.stringify({ prompt })
       });
 
-      if (!response.ok) throw new Error('Không thể kết nối tới Kilo Server ở cổng 9999');
+      if (!response.ok) throw new Error('Kilo Server báo lỗi hoặc không thể kết nối');
       
-      alert('Đã gửi lệnh cho Kilo CLI làm việc! Vui lòng xem terminal chạy server.');
+      alert('Kilo CLI đã xử lý và áp dụng code thành công!');
     } catch (error) {
       alert((error as Error).message);
     } finally {

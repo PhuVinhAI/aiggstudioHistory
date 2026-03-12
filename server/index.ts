@@ -57,8 +57,14 @@ app.post('/api/kilo', (req, res) => {
     });
   }
 
+  let responded = false;
+
   kiloProcess.on('error', (err) => {
     console.error(`\n[LỖI] Không thể khởi chạy Kilo CLI:`, err);
+    if (!responded) {
+      responded = true;
+      res.status(500).json({ error: 'Không thể khởi chạy Kilo CLI' });
+    }
   });
 
   kiloProcess.on('close', (code) => {
@@ -72,11 +78,17 @@ app.post('/api/kilo', (req, res) => {
     } catch (e) {
       console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
     }
-  });
 
-  // QUAN TRỌNG: Trả về response cho Extension ngay lập tức.
-  // Nhờ vậy Popup không bị loading mãi và Background không bị treo.
-  res.json({ success: true, message: 'Đã đưa task cho Kilo xử lý ngầm' });
+    // Đợi Kilo xử lý xong mới trả HTTP Response về cho Extension
+    if (!responded) {
+      responded = true;
+      if (code === 0) {
+        res.json({ success: true, message: 'Kilo CLI đã thực thi xong nhiệm vụ' });
+      } else {
+        res.status(500).json({ error: `Kilo CLI kết thúc với lỗi (code: ${code})` });
+      }
+    }
+  });
 });
 
 app.listen(9999, () => {

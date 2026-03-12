@@ -22,7 +22,19 @@ window.fetch = async function(...args) {
     }
   }
   
-  return originalFetch.apply(this, args);
+  // Phát hiện AI bắt đầu sinh bằng API gọi đi
+  if (typeof url === 'string' && url.includes('GenerateContent')) {
+    window.postMessage({ type: 'AI_STATE_CHANGED', state: 'generating' }, '*');
+  }
+
+  const response = await originalFetch.apply(this, args);
+
+  // Phát hiện AI đã update prompt xong (lưu xong lên Drive)
+  if (typeof url === 'string' && url.includes('UpdatePrompt') && response.ok) {
+    window.postMessage({ type: 'AI_STATE_CHANGED', state: 'updated' }, '*');
+  }
+  
+  return response;
 };
 
 // Intercept XMLHttpRequest
@@ -32,9 +44,23 @@ const xhrHeaders = new WeakMap<XMLHttpRequest, Map<string, string>>();
 
 XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...rest: any[]) {
   const urlString = typeof url === 'string' ? url : url.toString();
+  
   if (urlString.includes('googleapis.com')) {
     xhrHeaders.set(this, new Map());
   }
+
+  // Phát hiện AI bắt đầu sinh
+  if (urlString.includes('GenerateContent')) {
+    window.postMessage({ type: 'AI_STATE_CHANGED', state: 'generating' }, '*');
+  }
+
+  this.addEventListener('load', function() {
+    // Phát hiện update xong
+    if (urlString.includes('UpdatePrompt') && this.status === 200) {
+      window.postMessage({ type: 'AI_STATE_CHANGED', state: 'updated' }, '*');
+    }
+  });
+
   return originalOpen.apply(this, [method, url, ...rest] as any);
 };
 

@@ -1,3 +1,7 @@
+// Auto-Watch Kilo Logic
+let isGenerating = false;
+let autoWatchEnabled = false;
+
 // Content script chạy trong ISOLATED world - có thể dùng chrome.storage
 window.addEventListener('message', (event) => {
   if (event.source !== window) return;
@@ -13,66 +17,46 @@ window.addEventListener('message', (event) => {
       }
     });
   }
-});
 
-// Auto-Watch Kilo Logic
-let isGenerating = false;
-let autoWatchEnabled = false;
+  // Bắt tín hiệu Network từ interceptor.ts
+  if (event.data.type === 'AI_STATE_CHANGED') {
+    if (!autoWatchEnabled) return;
+
+    if (event.data.state === 'generating') {
+      if (!isGenerating) {
+        isGenerating = true;
+        console.log('🔄 [Auto-watch Debug] Network Event: Đã bắt được GenerateContent. AI đang trả lời...');
+      }
+    } else if (event.data.state === 'updated') {
+      if (isGenerating) {
+        isGenerating = false;
+        console.log('✅ [Auto-watch Debug] Network Event: Đã bắt được UpdatePrompt. Dữ liệu đã lưu lên Drive.');
+        
+        // Gọi thẳng sau 1 giây mà không cần đợi 6 giây như trước (do đã update xong)
+        setTimeout(() => {
+          console.log('🚀 [Auto-watch Debug] Bắn tín hiệu executeKiloWorkflow tới Background!');
+          chrome.runtime.sendMessage({ 
+            action: 'executeKiloWorkflow', 
+            url: window.location.href 
+          });
+        }, 1000);
+      }
+    }
+  }
+});
 
 // Khởi tạo trạng thái ban đầu
 chrome.storage.local.get(['autoWatchKilo'], (res) => {
   autoWatchEnabled = !!res.autoWatchKilo;
+  console.log(`⚙️ [Auto-watch Debug] Trạng thái khởi tạo: ${autoWatchEnabled ? 'BẬT' : 'TẮT'}`);
 });
 
 // Lắng nghe nếu người dùng bật/tắt trong Popup
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.autoWatchKilo) {
     autoWatchEnabled = !!changes.autoWatchKilo.newValue;
+    console.log(`⚙️ [Auto-watch Debug] Đã thay đổi trạng thái: ${autoWatchEnabled ? 'BẬT' : 'TẮT'}`);
   }
 });
 
-console.log('🚀 [AI Studio Archiver] Content script initialized.');
-
-function initObserver() {
-  if (!document.body) {
-    requestAnimationFrame(initObserver);
-    return;
-  }
-
-  const observer = new MutationObserver(() => {
-    if (!autoWatchEnabled) return;
-
-    const runButton = document.querySelector('ms-run-button button');
-    if (!runButton) return;
-
-    const html = runButton.innerHTML;
-    
-    // Logic kiểm tra mới: Chỉ cần tìm xem có chữ Stop hoặc icon progress_activity (đang xoay) không
-    const isRunning = html.includes('progress_activity') || html.includes('Stop');
-
-    // Chỉ in log và xử lý khi có sự THAY ĐỔI trạng thái (từ Idle -> Run hoặc Run -> Idle)
-    if (isRunning && !isGenerating) {
-      isGenerating = true;
-      console.log('🔄 [Auto-watch Debug] Trạng thái: ĐANG CHẠY (AI is generating...)');
-    } 
-    else if (!isRunning && isGenerating) {
-      isGenerating = false;
-      console.log('✅ [Auto-watch Debug] Trạng thái: HOÀN THÀNH. Gọi Kilo sau 3 giây...');
-      
-      // Đợi 3 giây để đảm bảo Google Drive đã kịp lưu lượt chat mới nhất
-      setTimeout(() => {
-        console.log('🚀 [Auto-watch Debug] Bắn tín hiệu executeKiloWorkflow tới Background!');
-        chrome.runtime.sendMessage({ 
-          action: 'executeKiloWorkflow', 
-          url: window.location.href 
-        });
-      }, 3000);
-    }
-  });
-
-  // Theo dõi toàn bộ DOM để bắt được nút Run
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true });
-  console.log('✅ [Auto-watch Debug] Đã gắn observer vào document.body');
-}
-
-initObserver();
+console.log('🚀 [AI Studio Archiver] Content script initialized with Network Observer.');

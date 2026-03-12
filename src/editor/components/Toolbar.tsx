@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Download, CheckSquare, Square, RotateCcw, Loader2, Cpu } from 'lucide-react';
+import { Download, CheckSquare, Square, RotateCcw, Loader2 } from 'lucide-react';
 import { useEditorStore } from '@/lib/store';
 import { exportChat } from '@/utils/export';
 import { toast } from 'sonner';
@@ -26,40 +26,6 @@ export function Toolbar() {
   } = useEditorStore();
   
   const [isExporting, setIsExporting] = useState(false);
-  const [isCallingKilo, setIsCallingKilo] = useState(false);
-
-  const handleCallKilo = async () => {
-    if (chatTurns.length === 0) {
-      toast.error('Không có dữ liệu chat để gửi cho Kilo');
-      return;
-    }
-
-    // Lấy tin nhắn cuối cùng để làm prompt cho Kilo
-    const lastTurn = chatTurns[chatTurns.length - 1];
-    const prompt = lastTurn.content;
-
-    if (!prompt) {
-      toast.error('Tin nhắn cuối cùng bị rỗng');
-      return;
-    }
-
-    try {
-      setIsCallingKilo(true);
-      const response = await fetch('http://localhost:9999/api/kilo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-
-      if (!response.ok) throw new Error('Không thể kết nối tới Kilo Server ở cổng 9999 (Bạn đã chạy npm run server chưa?)');
-      
-      toast.success('Đã gửi lệnh cho Kilo CLI làm việc! Vui lòng xem terminal chạy server.');
-    } catch (error) {
-      toast.error((error as Error).message);
-    } finally {
-      setIsCallingKilo(false);
-    }
-  };
 
   const handleExport = async () => {
     try {
@@ -169,21 +135,7 @@ export function Toolbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button 
-            variant="secondary"
-            onClick={handleCallKilo} 
-            disabled={isCallingKilo || isExporting}
-            className="border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-          >
-            {isCallingKilo ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Cpu className="mr-2 h-4 w-4" />
-            )}
-            Gọi Kilo làm việc
-          </Button>
-
-          <Button onClick={handleExport} disabled={isExporting || isCallingKilo}>
+          <Button onClick={handleExport} disabled={isExporting}>
             {isExporting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

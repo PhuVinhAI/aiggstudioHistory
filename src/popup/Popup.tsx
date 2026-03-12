@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Key, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
-import { extractPromptIdFromUrl } from '../utils/api';
+import { Key, ExternalLink, CheckCircle2, AlertCircle, Loader2, Cpu } from 'lucide-react';
+import { extractPromptIdFromUrl, fetchPromptDataFromDrive, convertPromptDataToChatTurns } from '../utils/api';
 import { TokenGuide } from '../components/TokenGuide';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ export default function Popup() {
   const [currentUrl, setCurrentUrl] = useState('');
   const [saved, setSaved] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
+  const [isCallingKilo, setIsCallingKilo] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -51,6 +52,48 @@ export default function Popup() {
     await chrome.storage.local.set({ driveToken });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleCallKilo = async () => {
+    const promptId = extractPromptIdFromUrl(currentUrl);
+    if (!promptId) {
+      alert('Vui lòng mở trang AI Studio chat trước');
+      return;
+    }
+
+    if (!driveToken) {
+      alert('Vui lòng nhập Drive API Token trước');
+      return;
+    }
+
+    try {
+      setIsCallingKilo(true);
+      
+      const promptData = await fetchPromptDataFromDrive(promptId, driveToken);
+      if (!promptData) throw new Error('Không thể tải dữ liệu từ Google Drive');
+
+      const chatTurns = convertPromptDataToChatTurns(promptData);
+      if (chatTurns.length === 0) throw new Error('Đoạn chat trống rỗng');
+
+      const lastTurn = chatTurns[chatTurns.length - 1];
+      const prompt = lastTurn.content;
+
+      if (!prompt) throw new Error('Tin nhắn cuối cùng bị rỗng');
+
+      const response = await fetch('http://localhost:9999/api/kilo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!response.ok) throw new Error('Không thể kết nối tới Kilo Server ở cổng 9999');
+      
+      alert('Đã gửi lệnh cho Kilo CLI làm việc! Vui lòng xem terminal chạy server.');
+    } catch (error) {
+      alert((error as Error).message);
+    } finally {
+      setIsCallingKilo(false);
+    }
   };
 
   const handleOpenEditor = async () => {
@@ -144,16 +187,34 @@ export default function Popup() {
           )}
         </Card>
 
-        {/* Open Editor Button */}
-        <Button
-          onClick={handleOpenEditor}
-          disabled={!isAIStudioPage}
-          className="w-full"
-          size="lg"
-        >
-          <ExternalLink className="h-5 w-5 mr-2" />
-          Mở Editor
-        </Button>
+        <div className="flex flex-col gap-2">
+          {/* Call Kilo Button */}
+          <Button
+            onClick={handleCallKilo}
+            disabled={!isAIStudioPage || isCallingKilo}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            size="lg"
+          >
+            {isCallingKilo ? (
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            ) : (
+              <Cpu className="h-5 w-5 mr-2" />
+            )}
+            {isCallingKilo ? 'Đang gọi Kilo...' : 'Gọi Kilo làm việc'}
+          </Button>
+
+          {/* Open Editor Button */}
+          <Button
+            onClick={handleOpenEditor}
+            disabled={!isAIStudioPage}
+            variant="outline"
+            className="w-full"
+            size="lg"
+          >
+            <ExternalLink className="h-5 w-5 mr-2" />
+            Mở Editor để Export
+          </Button>
+        </div>
       </div>
 
       {/* Footer */}

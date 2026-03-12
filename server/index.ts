@@ -97,5 +97,28 @@ app.post('/api/kilo', (req, res) => {
 
 app.listen(9999, () => {
   console.log('🚀 Server kết nối Kilo CLI đang chạy tại: http://localhost:9999');
+  
+  // Tự động tìm và thêm .kilo-tasks vào .gitignore của dự án hiện tại
+  const gitignorePath = path.join(process.cwd(), '.gitignore');
+  if (fs.existsSync(gitignorePath)) {
+    try {
+      const content = fs.readFileSync(gitignorePath, 'utf8');
+      if (!content.includes('.kilo-tasks')) {
+        fs.appendFileSync(gitignorePath, '\n# Bỏ qua thư mục tạm của Kilo Auto-Watch\n.kilo-tasks\n');
+        console.log('🛡️  [SETUP] Đã tự động thêm ".kilo-tasks" vào file .gitignore');
+      }
+    } catch (err) {
+      console.warn('⚠️  [CẢNH BÁO] Không thể đọc hoặc ghi file .gitignore', err);
+    }
+  } else {
+    // Nếu chưa có file .gitignore thì tạo mới
+    try {
+      fs.writeFileSync(gitignorePath, '# Bỏ qua thư mục tạm của Kilo Auto-Watch\n.kilo-tasks\n', 'utf8');
+      console.log('🛡️  [SETUP] Đã tự động tạo file .gitignore và bỏ qua ".kilo-tasks"');
+    } catch (err) {
+      console.warn('⚠️  [CẢNH BÁO] Không thể tạo file .gitignore', err);
+    }
+  }
+
   console.log('⏳ Đang chờ nhiệm vụ từ Extension...');
 });

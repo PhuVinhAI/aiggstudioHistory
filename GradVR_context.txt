@@ -1,0 +1,3652 @@
+Directory structure:
+└── src/
+    ├── App.css
+    ├── App.tsx
+    ├── assets/
+    │   └── react.svg
+    ├── components/
+    │   ├── ARControls.tsx
+    │   ├── ARScene.tsx
+    │   ├── effects/
+    │   │   ├── ChibiCharacter.ts
+    │   │   ├── CongratulationText.ts
+    │   │   ├── Fireworks.ts
+    │   │   └── index.ts
+    │   └── ui/
+    │       ├── CaptureButton.tsx
+    │       ├── CaptureFlash.tsx
+    │       ├── MediaPreview.tsx
+    │       ├── ResetButton.tsx
+    │       ├── ScanningGuide.tsx
+    │       ├── SettingsBottomSheet.tsx
+    │       ├── SettingsButton.tsx
+    │       ├── ToggleSwitch.tsx
+    │       ├── TopStatusBar.tsx
+    │       ├── VideoButton.tsx
+    │       └── index.ts
+    ├── hooks/
+    │   ├── useARCaptureMedia.ts
+    │   ├── useARSettings.ts
+    │   ├── useRecordingTimer.ts
+    │   └── useXREvents.ts
+    ├── index.css
+    ├── main.tsx
+    ├── styles/
+    │   └── pwa-installer-custom.css
+    ├── theme/
+    │   ├── README.md
+    │   └── index.ts
+    ├── types/
+    │   ├── mind-ar.d.ts
+    │   ├── vite.d.ts
+    │   ├── xr8.d.ts
+    │   └── xrextras.d.ts
+    ├── utils/
+    │   ├── customMediaRecorder.ts
+    │   ├── slamPersistence.ts
+    │   ├── videoConverter.ts
+    │   ├── xr8Setup.ts
+    │   ├── xrExtrasConfig.ts
+    │   └── xrExtrasEvents.ts
+    └── vite-env.d.ts
+
+
+================================================
+FILE: src/App.css
+================================================
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #000;
+  min-height: 100vh;
+}
+
+/* XRExtras sẽ tự động xử lý toàn bộ UI */
+
+
+================================================
+FILE: src/App.tsx
+================================================
+import ARScene from "./components/ARScene";
+import "./App.css";
+
+function App() {
+  const targetSrc = `${import.meta.env.BASE_URL}image-targets/diploma.json`;
+
+  return <ARScene targetSrc={targetSrc} />;
+}
+
+export default App;
+
+
+================================================
+FILE: src/assets/react.svg
+================================================
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+
+================================================
+FILE: src/components/ARControls.tsx
+================================================
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  CaptureButton, VideoButton, ResetButton, SettingsButton, 
+  SettingsBottomSheet, CaptureFlash, MediaPreview, TopStatusBar, ScanningGuide
+} from './ui';
+import { theme } from '../theme';
+import { useARSettings } from '../hooks/useARSettings';
+import { useARCaptureMedia } from '../hooks/useARCaptureMedia';
+
+interface ARControlsProps {
+  targetFound: boolean;
+  isLoading?: boolean;
+  onCapture?: (imageBlob: Blob) => void;
+  onRecordStop?: (videoBlob: Blob) => void;
+}
+
+export const ARControls: React.FC<ARControlsProps> = ({
+  targetFound,
+  isLoading = false,
+  onCapture,
+  onRecordStop,
+}) => {
+  const [showSettings, setShowSettings] = useState(false);
+  const [hasDetectedOnce, setHasDetectedOnce] = useState(false);
+
+  useEffect(() => {
+    if (targetFound && !hasDetectedOnce) {
+      setHasDetectedOnce(true);
+    }
+  }, [targetFound, hasDetectedOnce]);
+  
+  const {
+    enableAudio, setEnableAudio,
+    enableARSound, setEnableARSound,
+    enableSlamPersistence, setEnableSlamPersistence,
+    useAbsoluteScale, setUseAbsoluteScale
+  } = useARSettings();
+
+  const {
+    mode, isRecording, isProcessingVideo, isConverting, showFlash, preview,
+    handleCapture, handleVideoClick, handleSavePreview, handleDiscardPreview
+  } = useARCaptureMedia(enableAudio, onCapture, onRecordStop);
+
+  if (isLoading) return null;
+
+  const handleReset = () => {
+    window.dispatchEvent(new CustomEvent('resetSlam'));
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <CaptureFlash isVisible={showFlash} />
+
+      <TopStatusBar 
+        isProcessingVideo={isProcessingVideo}
+        isRecording={isRecording}
+        isConverting={isConverting}
+      />
+
+      <ScanningGuide isVisible={!hasDetectedOnce && !targetFound} />
+
+      <MediaPreview 
+        preview={preview}
+        onSave={handleSavePreview}
+        onDiscard={handleDiscardPreview}
+      />
+
+      <div
+        style={{
+          position: 'fixed',
+          bottom: theme.spacing.xxl,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: theme.spacing.md,
+          zIndex: theme.zIndex.controls,
+        }}
+      >
+        <ResetButton onClick={handleReset} />
+
+        <motion.div
+           animate={{ opacity: (isProcessingVideo || isConverting) ? 0.3 : 1 }}
+           style={{
+             pointerEvents: (isProcessingVideo || isConverting || preview) ? 'none' : 'auto',
+             background: theme.colors.surface.glass,
+             backdropFilter: theme.backdropFilter.blurStrong,
+             borderRadius: theme.borderRadius.pill,
+             padding: theme.spacing.xs,
+             display: 'flex',
+             alignItems: 'center',
+             position: 'relative',
+             boxShadow: theme.shadows.md,
+             border: `1px solid ${theme.colors.border.medium}`,
+           }}
+        >
+          <motion.div
+             animate={{ x: mode === 'photo' ? 0 : 68 }}
+             transition={{ type: "spring", stiffness: 400, damping: 30 }}
+             style={{
+               position: 'absolute',
+               top: theme.spacing.xs, left: theme.spacing.xs,
+               width: '64px', height: '52px',
+               borderRadius: '26px',
+               background: theme.colors.primary,
+               zIndex: 0
+             }}
+          />
+
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: theme.spacing.xs }}>
+             <CaptureButton 
+               onCapture={handleCapture} 
+               isActive={mode === 'photo'}
+             />
+             <VideoButton 
+               isRecording={isRecording} 
+               onToggle={handleVideoClick}
+               isActive={mode === 'video'}
+             />
+          </div>
+        </motion.div>
+
+        <SettingsButton onClick={() => setShowSettings(true)} />
+      </div>
+
+      <SettingsBottomSheet 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)}
+        enableAudio={enableAudio}
+        onEnableAudioChange={setEnableAudio}
+        enableARSound={enableARSound}
+        onEnableARSoundChange={setEnableARSound}
+        enableSlamPersistence={enableSlamPersistence}
+        onEnableSlamPersistenceChange={setEnableSlamPersistence}
+        useAbsoluteScale={useAbsoluteScale}
+        onUseAbsoluteScaleChange={setUseAbsoluteScale}
+      />
+    </motion.div>
+  );
+};
+
+
+================================================
+FILE: src/components/ARScene.tsx
+================================================
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { createXR8Scene, cleanupXR8Scene, resetXR8Scene } from "../utils/xr8Setup";
+import { ARControls } from "./ARControls";
+import { useXREvents } from "../hooks/useXREvents";
+
+if (typeof window !== 'undefined') {
+  (window as any).THREE = THREE;
+}
+
+interface ARSceneProps {
+  targetSrc: string;
+}
+
+export default function ARScene({ targetSrc }: ARSceneProps) {
+  const [targetFound, setTargetFound] = useState(false);
+  const sceneSetupRef = useRef<Awaited<ReturnType<typeof createXR8Scene>> | null>(null);
+  
+  // Custom hook manages XRExtras events like AlmostThere and Loading screens
+  const { isLoading } = useXREvents();
+
+  const [enableSlamPersistence, setEnableSlamPersistence] = useState(() => {
+    const saved = localStorage.getItem('enableSlamPersistence');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const [enableARSound, setEnableARSound] = useState(() => {
+    const saved = localStorage.getItem('enableARSound');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    const handleSettingsChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { setting, value } = customEvent.detail;
+      
+      if (setting === 'enableSlamPersistence') {
+        setEnableSlamPersistence(value);
+      } else if (setting === 'enableARSound') {
+        setEnableARSound(value);
+      }
+    };
+
+    window.addEventListener('settingsChanged', handleSettingsChange);
+    return () => window.removeEventListener('settingsChanged', handleSettingsChange);
+  }, []);
+
+  useEffect(() => {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'camerafeed';
+    document.body.appendChild(canvas);
+    
+    const handleResize = () => {
+      if (sceneSetupRef.current?.renderer) {
+        sceneSetupRef.current.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    const handleResetSlam = () => {
+      if (sceneSetupRef.current) {
+        resetXR8Scene(sceneSetupRef.current);
+        setTargetFound(false);
+      }
+    };
+    
+    window.addEventListener('resetSlam', handleResetSlam);
+    
+    const initScene = async () => {
+      try {
+        await Promise.all([
+          new Promise<void>((resolve) => {
+            if (window.XR8) resolve();
+            else window.addEventListener('xrloaded', () => resolve(), { once: true });
+          }),
+          new Promise<void>((resolve) => {
+            if (window.XRExtras) resolve();
+            else window.addEventListener('xrextrasloaded', () => resolve(), { once: true });
+          }),
+        ]);
+
+        const savedSlamPersistence = localStorage.getItem('enableSlamPersistence');
+        const initialSlamPersistence = savedSlamPersistence !== null ? savedSlamPersistence === 'true' : true;
+        
+        const savedAbsoluteScale = localStorage.getItem('useAbsoluteScale');
+        const initialAbsoluteScale = savedAbsoluteScale !== null ? savedAbsoluteScale === 'true' : true;
+
+        sceneSetupRef.current = await createXR8Scene(
+          canvas,
+          targetSrc,
+          () => setTargetFound(true),
+          () => setTargetFound(false),
+          initialSlamPersistence,
+          initialAbsoluteScale
+        );
+        
+        handleResize();
+      } catch (error) {
+        console.error("Error initializing XR8 scene:", error);
+      }
+    };
+
+    initScene();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resetSlam', handleResetSlam);
+      
+      if (sceneSetupRef.current) cleanupXR8Scene(sceneSetupRef.current);
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    };
+  }, [targetSrc]);
+
+  useEffect(() => {
+    if (sceneSetupRef.current?.audio) {
+      if (enableARSound && targetFound) {
+        sceneSetupRef.current.audio.play().catch(() => {});
+      } else {
+        sceneSetupRef.current.audio.pause();
+      }
+    }
+  }, [targetFound, enableARSound]);
+
+  useEffect(() => {
+    if (sceneSetupRef.current?.slamPersistence) {
+      sceneSetupRef.current.slamPersistence.setEnabled(enableSlamPersistence);
+      if (!enableSlamPersistence && !targetFound && sceneSetupRef.current.anchorGroup) {
+        sceneSetupRef.current.anchorGroup.visible = false;
+      }
+    }
+  }, [enableSlamPersistence, targetFound]);
+
+  const handleRecordStop = (blob: Blob) => {
+    console.log('Video recorded:', blob.size, 'bytes');
+  };
+
+  const handleCapture = (blob: Blob) => {
+    console.log('Photo captured:', blob.size, 'bytes');
+  };
+
+  return (
+    <ARControls
+      targetFound={targetFound}
+      isLoading={isLoading}
+      onCapture={handleCapture}
+      onRecordStop={handleRecordStop}
+    />
+  );
+}
+
+
+================================================
+FILE: src/components/effects/ChibiCharacter.ts
+================================================
+import * as THREE from "three";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+
+export class ChibiCharacter {
+  private group: THREE.Group;
+  private character: THREE.Object3D | null = null;
+  private mixer: THREE.AnimationMixer | null = null;
+  private mainAction: THREE.AnimationAction | null = null;
+  private characterHeight = 0;
+
+  constructor() {
+    this.group = new THREE.Group();
+  }
+
+  getGroup(): THREE.Group {
+    return this.group;
+  }
+
+  getHeadPosition(): THREE.Vector3 | null {
+    if (!this.character || this.characterHeight === 0) return null;
+
+    // Vị trí trên đầu nhân vật
+    const pos = new THREE.Vector3(0, 0, 0);
+    pos.z = this.characterHeight + 1.0;
+    return pos;
+  }
+
+  load(position: THREE.Vector3): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const loader = new FBXLoader();
+      loader.load(
+        `${import.meta.env.BASE_URL}models/dancing_character.fbx`,
+        (fbx) => {
+          this.character = fbx;
+          
+          // FBX từ Mixamo thường rất to, scale nhỏ lại
+          // Với absolute scale: 0.005 = ~0.3-0.5m (chibi size)
+          // Nếu muốn to hơn: tăng lên 0.01 = ~0.6-1m
+          this.character.scale.setScalar(0.005);
+
+          // Xoay để nhân vật đứng đúng hướng trên mặt phẳng ảnh
+          this.character.rotation.x = -Math.PI / 2;
+          this.character.rotation.y = Math.PI;
+          this.character.rotation.z = Math.PI;
+
+          this.character.position.copy(position);
+          this.character.position.z = 0.01; // 1cm phía trên bề mặt
+
+          // Tính chiều cao nhân vật
+          const box = new THREE.Box3().setFromObject(this.character);
+          this.characterHeight = box.max.z - box.min.z;
+
+          this.group.add(this.character);
+
+          // Setup animation từ FBX
+          if (fbx.animations && fbx.animations.length > 0) {
+            this.mixer = new THREE.AnimationMixer(this.character);
+            const action = this.mixer.clipAction(fbx.animations[0]);
+            action.setLoop(THREE.LoopRepeat, Infinity);
+            action.play();
+            this.mainAction = action;
+          }
+
+          resolve();
+        },
+        undefined,
+        (error) => {
+          console.error("Error loading dancing character:", error);
+          reject(error);
+        }
+      );
+    });
+  }
+
+  resetAnimation() {
+    if (this.mainAction) {
+      this.mainAction.reset();
+      this.mainAction.play();
+    }
+  }
+
+  update(deltaTime: number) {
+    if (this.mixer) {
+      this.mixer.update(deltaTime);
+    }
+  }
+
+  dispose() {
+    if (this.character) {
+      this.group.remove(this.character);
+      this.character.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+    }
+    if (this.mixer) {
+      this.mixer.stopAllAction();
+    }
+  }
+}
+
+
+================================================
+FILE: src/components/effects/CongratulationText.ts
+================================================
+import * as THREE from "three";
+
+export class CongratulationText {
+  private group: THREE.Group;
+  private bannerMesh: THREE.Mesh | null = null;
+  private animationTime = 0;
+  private basePosition = new THREE.Vector3();
+
+  constructor() {
+    this.group = new THREE.Group();
+  }
+
+  getGroup(): THREE.Group {
+    return this.group;
+  }
+
+  setPosition(pos: THREE.Vector3) {
+    this.basePosition.copy(pos);
+    if (this.bannerMesh) {
+      this.bannerMesh.position.copy(pos);
+    }
+  }
+
+  create() {
+    const logoImg = new Image();
+    logoImg.crossOrigin = "anonymous";
+    logoImg.onload = () => {
+      this.createBanner(logoImg);
+    };
+    logoImg.src = `${import.meta.env.BASE_URL}logotvu.png`;
+  }
+
+  private createBanner(logoImg: HTMLImageElement) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 700;
+    canvas.height = 180;
+    const ctx = canvas.getContext("2d")!;
+
+    // Background đỏ đậm
+    ctx.fillStyle = "#5A0000";
+    ctx.fillRect(0, 0, 700, 180);
+
+    // Viền vàng
+    ctx.strokeStyle = "#C9A227";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(8, 8, 684, 164);
+
+    // Logo bên trái
+    const logoSize = 65;
+    const logoX = 25;
+    const logoY = (180 - logoSize) / 2;
+    ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+
+    // Text area
+    const textCenterX = 400;
+
+    // Tên trường
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#C9A227";
+    ctx.font = "600 18px 'Times New Roman', serif";
+    ctx.fillText("ĐẠI HỌC TRÀ VINH", textCenterX, 42);
+
+    // Đường kẻ
+    ctx.strokeStyle = "#C9A227";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(150, 55);
+    ctx.lineTo(650, 55);
+    ctx.stroke();
+
+    // Chúc mừng tốt nghiệp
+    ctx.fillStyle = "#F0D060";
+    ctx.font = "bold 32px 'Times New Roman', serif";
+    ctx.fillText("CHÚC MỪNG TỐT NGHIỆP", textCenterX, 100);
+
+    // Đường kẻ dưới
+    ctx.beginPath();
+    ctx.moveTo(150, 115);
+    ctx.lineTo(650, 115);
+    ctx.stroke();
+
+    // Lời chúc
+    ctx.fillStyle = "#E0D0B0";
+    ctx.font = "italic 16px 'Times New Roman', serif";
+    ctx.fillText(
+      "Chúc bạn thành công trên hành trình phía trước",
+      textCenterX,
+      150
+    );
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+
+    const geometry = new THREE.PlaneGeometry(0.95, 0.24);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+
+    this.bannerMesh = new THREE.Mesh(geometry, material);
+
+    // Xoay banner để nghiêng về phía camera nhiều hơn
+    this.bannerMesh.rotation.x = Math.PI / 3; // Nghiêng khoảng 60 độ
+
+    this.bannerMesh.position.copy(this.basePosition);
+    this.group.add(this.bannerMesh);
+  }
+
+  resetAnimation() {
+    this.animationTime = 0;
+  }
+
+  update(deltaTime: number) {
+    this.animationTime += deltaTime;
+
+    if (this.bannerMesh) {
+      // Lơ lửng nhẹ trên đầu nhân vật (theo trục Z)
+      this.bannerMesh.position.z =
+        this.basePosition.z + Math.sin(this.animationTime * 1.5) * 0.02;
+    }
+  }
+
+  dispose() {
+    if (this.bannerMesh) {
+      this.group.remove(this.bannerMesh);
+      this.bannerMesh.geometry.dispose();
+      (this.bannerMesh.material as THREE.MeshBasicMaterial).dispose();
+    }
+  }
+}
+
+
+================================================
+FILE: src/components/effects/Fireworks.ts
+================================================
+import * as THREE from "three";
+
+interface Particle {
+  sprite: THREE.Sprite;
+  vx: number;
+  vy: number;
+  vz: number;
+  life: number;
+}
+
+export class Fireworks {
+  private group: THREE.Group;
+  private particles: Particle[] = [];
+  private texture: THREE.CanvasTexture;
+
+  constructor() {
+    this.group = new THREE.Group();
+    this.texture = this.createTexture();
+  }
+
+  getGroup(): THREE.Group {
+    return this.group;
+  }
+
+  // Texture nhỏ, sáng, mờ dần ra ngoài
+  private createTexture(): THREE.CanvasTexture {
+    const canvas = document.createElement("canvas");
+    canvas.width = 16;
+    canvas.height = 16;
+    const ctx = canvas.getContext("2d")!;
+
+    const gradient = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.1, "rgba(255,255,255,0.8)");
+    gradient.addColorStop(0.5, "rgba(255,255,255,0.3)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 16, 16);
+
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  private createMaterial(color: number): THREE.SpriteMaterial {
+    return new THREE.SpriteMaterial({
+      map: this.texture,
+      color: color,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+  }
+
+  launch(startPosition: THREE.Vector3, color: number) {
+    const targetZ = startPosition.z + 0.45 + Math.random() * 0.15;
+
+    // Rocket nhỏ bay lên (theo trục Z = vuông góc với ảnh)
+    const rocket = new THREE.Sprite(this.createMaterial(0xffffaa));
+    rocket.scale.setScalar(0.025);
+    rocket.position.copy(startPosition);
+    this.group.add(rocket);
+
+    let currentZ = startPosition.z;
+    const flyUp = () => {
+      currentZ += 0.015;
+      rocket.position.z = currentZ;
+
+      // Trail nhỏ
+      const trail = new THREE.Sprite(this.createMaterial(0xffaa44));
+      trail.scale.setScalar(0.015);
+      trail.position.set(
+        rocket.position.x + (Math.random() - 0.5) * 0.005,
+        rocket.position.y,
+        rocket.position.z - 0.01
+      );
+      this.group.add(trail);
+      this.particles.push({
+        sprite: trail,
+        vx: 0,
+        vy: 0,
+        vz: -0.001,
+        life: 0.3,
+      });
+
+      if (currentZ >= targetZ) {
+        this.group.remove(rocket);
+        rocket.material.dispose();
+        this.explode(
+          new THREE.Vector3(startPosition.x, startPosition.y, targetZ),
+          color
+        );
+      } else {
+        requestAnimationFrame(flyUp);
+      }
+    };
+    requestAnimationFrame(flyUp);
+  }
+
+  private explode(position: THREE.Vector3, color: number) {
+    // Rất nhiều hạt nhỏ li ti
+    const numParticles = 150;
+
+    for (let i = 0; i < numParticles; i++) {
+      // Phân bố đều trên hình cầu
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      // Tốc độ có chút random để tự nhiên hơn
+      const baseSpeed = 0.015;
+      const speed = baseSpeed + Math.random() * 0.008;
+
+      const sprite = new THREE.Sprite(this.createMaterial(color));
+      // Hạt vừa phải
+      sprite.scale.setScalar(0.012 + Math.random() * 0.008);
+      sprite.position.copy(position);
+      this.group.add(sprite);
+
+      this.particles.push({
+        sprite,
+        vx: Math.sin(phi) * Math.cos(theta) * speed,
+        vy: Math.sin(phi) * Math.sin(theta) * speed,
+        vz: Math.cos(phi) * speed * 0.5,
+        life: 0.8 + Math.random() * 0.6,
+      });
+    }
+
+    // Thêm vài hạt sáng hơn ở giữa
+    for (let i = 0; i < 20; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const speed = 0.008 + Math.random() * 0.005;
+
+      const sprite = new THREE.Sprite(this.createMaterial(0xffffff));
+      sprite.scale.setScalar(0.018);
+      sprite.position.copy(position);
+      this.group.add(sprite);
+
+      this.particles.push({
+        sprite,
+        vx: Math.sin(phi) * Math.cos(theta) * speed,
+        vy: Math.sin(phi) * Math.sin(theta) * speed,
+        vz: Math.cos(phi) * speed * 0.5,
+        life: 0.5 + Math.random() * 0.3,
+      });
+    }
+  }
+
+  launchSequence(centerPosition: THREE.Vector3) {
+    const colors = [0xff3333, 0xffdd33, 0x33ff66, 0x33ddff, 0xff33ff, 0xff8833];
+
+    // Bắn từ dưới ảnh (y âm = phía dưới)
+    const launches = [
+      { x: 0, y: -0.4, delay: 0 },
+      { x: -0.18, y: -0.45, delay: 400 },
+      { x: 0.18, y: -0.45, delay: 800 },
+      { x: -0.08, y: -0.42, delay: 1200 },
+      { x: 0.08, y: -0.42, delay: 1600 },
+      { x: 0, y: -0.4, delay: 2000 },
+    ];
+
+    launches.forEach(({ x, y, delay }, i) => {
+      setTimeout(() => {
+        this.launch(
+          new THREE.Vector3(
+            centerPosition.x + x,
+            centerPosition.y + y,
+            0.01 // Bắt đầu từ mặt ảnh
+          ),
+          colors[i % colors.length]
+        );
+      }, delay);
+    });
+  }
+
+  update() {
+    const gravity = 0.0005;
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+
+      p.sprite.position.x += p.vx;
+      p.sprite.position.y += p.vy;
+      p.sprite.position.z += p.vz;
+
+      // Gravity kéo xuống (theo trục Z)
+      p.vz -= gravity;
+
+      // Drag - chậm dần
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      p.vz *= 0.98;
+
+      p.life -= 0.018;
+
+      // Fade out
+      const alpha = Math.max(0, p.life);
+      (p.sprite.material as THREE.SpriteMaterial).opacity = alpha;
+
+      // Thu nhỏ dần
+      const currentScale = p.sprite.scale.x;
+      p.sprite.scale.setScalar(currentScale * 0.995);
+
+      if (p.life <= 0) {
+        this.group.remove(p.sprite);
+        p.sprite.material.dispose();
+        this.particles.splice(i, 1);
+      }
+    }
+  }
+
+  dispose() {
+    this.particles.forEach((p) => {
+      this.group.remove(p.sprite);
+      p.sprite.material.dispose();
+    });
+    this.particles = [];
+    this.texture.dispose();
+  }
+}
+
+
+================================================
+FILE: src/components/effects/index.ts
+================================================
+export { Fireworks } from "./Fireworks";
+export { CongratulationText } from "./CongratulationText";
+export { ChibiCharacter } from "./ChibiCharacter";
+
+
+================================================
+FILE: src/components/ui/CaptureButton.tsx
+================================================
+import { motion } from 'framer-motion';
+import { theme } from '../../theme';
+
+interface CaptureButtonProps {
+  onCapture: () => void;
+  isActive: boolean;
+}
+
+export const CaptureButton: React.FC<CaptureButtonProps> = ({ onCapture, isActive }) => {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.9 }}
+      onClick={onCapture}
+      style={{
+        width: '64px',
+        height: '52px',
+        borderRadius: '26px',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        WebkitTapHighlightColor: 'transparent',
+        outline: 'none',
+      }}
+    >
+      {/* Custom camera icon với ống kính viền */}
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <defs>
+          {/* Mask để tạo lỗ viền ống kính khi không active */}
+          <mask id="camera-mask-inactive">
+            <rect width="24" height="24" fill="white" />
+            <circle cx="12" cy="13" r="4.8" fill="black" />
+            <circle cx="12" cy="13" r="3.2" fill="white" />
+          </mask>
+        </defs>
+        {/* Body camera */}
+        <path
+          d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+          fill="white"
+          mask={isActive ? undefined : "url(#camera-mask-inactive)"}
+        />
+        {/* Ống kính khi active: viền trắng cho contrast trên background đỏ mới */}
+        {isActive && (
+          <circle 
+            cx="12" 
+            cy="13" 
+            r="4" 
+            fill="none"
+            stroke={theme.colors.primary}
+            strokeWidth="2" 
+          />
+        )}
+      </svg>
+    </motion.button>
+  );
+};
+
+
+
+================================================
+FILE: src/components/ui/CaptureFlash.tsx
+================================================
+import { motion, AnimatePresence } from 'framer-motion';
+import { theme } from '../../theme';
+
+interface CaptureFlashProps {
+  isVisible: boolean;
+}
+
+export const CaptureFlash: React.FC<CaptureFlashProps> = ({ isVisible }) => {
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <>
+          {/* Elegant black shutter flash combined with fade */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.9, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: theme.colors.background.dark,
+              zIndex: theme.zIndex.flash,
+              pointerEvents: 'none',
+            }}
+          />
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/MediaPreview.tsx
+================================================
+import { motion, AnimatePresence } from 'framer-motion';
+import { Download, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { theme } from '../../theme';
+
+interface MediaPreviewProps {
+  preview: { type: 'photo' | 'video', url: string, blob: Blob } | null;
+  onSave: () => void;
+  onDiscard: () => void;
+}
+
+export const MediaPreview: React.FC<MediaPreviewProps> = ({ preview, onSave, onDiscard }) => {
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [mediaSize, setMediaSize] = useState({ width: 0, height: 0 });
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+
+  
+  const handleMediaLoad = (event: React.SyntheticEvent<HTMLImageElement | HTMLVideoElement>) => {
+    const target = event.currentTarget;
+    
+    // Type-safe cách lấy kích thước
+    let naturalWidth = 0;
+    let naturalHeight = 0;
+    
+    if ('naturalWidth' in target) {
+      // Image element
+      naturalWidth = target.naturalWidth;
+      naturalHeight = target.naturalHeight;
+    } else if ('videoWidth' in target) {
+      // Video element
+      naturalWidth = target.videoWidth;
+      naturalHeight = target.videoHeight;
+    }
+    
+    if (naturalWidth > 0 && naturalHeight > 0) {
+      const isMobile = windowSize.width < 768;
+      const isTablet = windowSize.width >= 768 && windowSize.width < 1024;
+      
+      let maxWidth, maxHeight;
+      
+      if (isMobile) {
+        maxWidth = Math.min(windowSize.width * 0.95, 450);
+        maxHeight = windowSize.height * 0.7;
+      } else if (isTablet) {
+        maxWidth = Math.min(windowSize.width * 0.85, 700);
+        maxHeight = windowSize.height * 0.75;
+      } else {
+        maxWidth = Math.min(windowSize.width * 0.8, 900);
+        maxHeight = windowSize.height * 0.8;
+      }
+      
+      // Tính toán kích thước giữ nguyên aspect ratio
+      const aspectRatio = naturalWidth / naturalHeight;
+      let width = maxWidth;
+      let height = width / aspectRatio;
+      
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspectRatio;
+      }
+      
+      setMediaSize({ width, height });
+    }
+  };
+  const handleShare = async () => {
+    if (navigator.share && preview) {
+      try {
+        // LUÔN dùng PNG cho ảnh và MP4 cho video
+        const fileExtension = preview.type === 'photo' ? 'png' : 'mp4';
+        const mimeType = preview.type === 'photo' ? 'image/png' : 'video/mp4';
+        const fileName = `TVU_Graduation.${fileExtension}`;
+        
+        const file = new File([preview.blob], fileName, { type: mimeType });
+        
+        console.log('[Share] Sharing file:', { 
+          fileName, 
+          mimeType, 
+          originalBlobType: preview.blob.type,
+          size: file.size 
+        });
+        
+        await navigator.share({
+          files: [file],
+          title: 'Lễ Tốt Nghiệp TVU',
+          text: 'Một trải nghiệm Graduation AR tuyệt vời tại Đại học Trà Vinh!',
+        });
+        
+        console.log('Shared successfully');
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      alert('Trình duyệt của bạn không hỗ trợ tính năng chia sẻ này.');
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {preview && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: theme.zIndex.preview,
+            background: theme.colors.background.dark,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Top Actions */}
+          <div style={{ 
+            padding: theme.spacing.lg, 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)',
+          }}>
+            <button 
+              onClick={onDiscard}
+              style={{
+                background: theme.colors.surface.glass,
+                border: 'none',
+                borderRadius: theme.borderRadius.full,
+                width: '44px',
+                height: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: theme.colors.text.white,
+                cursor: 'pointer',
+                backdropFilter: theme.backdropFilter.blur,
+                transition: `all ${theme.transitions.normal}`,
+              }}
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Media Area */}
+          <div style={{ 
+            flex: 1, 
+            position: 'relative', 
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: `${theme.spacing.xl} ${theme.spacing.lg} ${theme.spacing.xxl} ${theme.spacing.lg}`,
+          }}>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              {preview.type === 'photo' ? (
+                <img 
+                  src={preview.url} 
+                  alt="Preview" 
+                  onLoad={handleMediaLoad}
+                  style={{ 
+                    width: mediaSize.width > 0 ? `${mediaSize.width}px` : 'auto',
+                    height: mediaSize.height > 0 ? `${mediaSize.height}px` : 'auto',
+                    maxWidth: '85vw',
+                    maxHeight: '65vh',
+                    objectFit: 'contain',
+                    borderRadius: theme.borderRadius.lg,
+                    boxShadow: theme.shadows.lg,
+                  }} 
+                />
+              ) : (
+                <video 
+                  src={preview.url} 
+                  controls 
+                  autoPlay 
+                  loop 
+                  playsInline 
+                  onLoadedMetadata={handleMediaLoad}
+                  style={{ 
+                    width: mediaSize.width > 0 ? `${mediaSize.width}px` : 'auto',
+                    height: mediaSize.height > 0 ? `${mediaSize.height}px` : 'auto',
+                    maxWidth: '85vw',
+                    maxHeight: '65vh',
+                    objectFit: 'contain',
+                    borderRadius: theme.borderRadius.lg,
+                    boxShadow: theme.shadows.lg,
+                  }} 
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Actions */}
+          <div style={{
+            padding: `${theme.spacing.xl} ${theme.spacing.lg}`,
+            display: 'flex',
+            gap: theme.spacing.lg,
+            justifyContent: 'center',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+            paddingBottom: theme.spacing.xxl,
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}>
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
+              onClick={handleShare}
+              style={{
+                flex: 1,
+                maxWidth: '160px',
+                padding: theme.spacing.md,
+                borderRadius: theme.borderRadius.lg,
+                border: `1px solid ${theme.colors.border.light}`,
+                background: 'transparent',
+                color: theme.colors.text.white,
+                fontSize: theme.typography.fontSize.base,
+                fontWeight: theme.typography.fontWeight.semibold,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: theme.spacing.sm,
+                backdropFilter: theme.backdropFilter.blur,
+                cursor: 'pointer',
+                transition: `all ${theme.transitions.normal}`,
+              }}
+            >
+              <svg xmlns="http://www.w3.org/0000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg> Chia sẻ
+            </motion.button>
+
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
+              onClick={onSave}
+              style={{
+                flex: 1,
+                maxWidth: '160px',
+                padding: theme.spacing.md,
+                borderRadius: theme.borderRadius.lg,
+                border: 'none',
+                background: theme.colors.primary,
+                color: theme.colors.text.white,
+                fontSize: theme.typography.fontSize.base,
+                fontWeight: theme.typography.fontWeight.semibold,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: theme.spacing.sm,
+                cursor: 'pointer',
+                transition: `all ${theme.transitions.normal}`,
+                boxShadow: `0 4px 16px ${theme.colors.primary}40`,
+              }}
+            >
+              <Download size={20} /> Tải xuống
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/ResetButton.tsx
+================================================
+import { motion } from 'framer-motion';
+import { RotateCcw } from 'lucide-react';
+import { theme } from '../../theme';
+
+interface ResetButtonProps {
+  onClick: () => void;
+}
+
+export const ResetButton: React.FC<ResetButtonProps> = ({ onClick }) => {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      style={{
+        width: '56px',
+        height: '56px',
+        borderRadius: theme.borderRadius.full,
+        background: theme.colors.surface.white,
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: theme.shadows.md,
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <RotateCcw size={24} color={theme.colors.text.secondary} />
+    </motion.button>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/ScanningGuide.tsx
+================================================
+import { motion, AnimatePresence } from 'framer-motion';
+import { Scan } from 'lucide-react';
+
+interface ScanningGuideProps {
+  isVisible: boolean;
+}
+
+export const ScanningGuide: React.FC<ScanningGuideProps> = ({ isVisible }) => {
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="ghost-image-overlay"
+        >
+          <Scan size={64} strokeWidth={1.5} />
+          <p>
+            Vui lòng hướng camera quét thư mời, tấm bằng<br/>
+            hoặc logo TVU trên nón tốt nghiệp ~
+          </p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/SettingsBottomSheet.tsx
+================================================
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Video, Volume2, Anchor } from 'lucide-react';
+import { theme } from '../../theme';
+import { ToggleSwitch } from './ToggleSwitch';
+
+interface SettingsBottomSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  enableAudio: boolean;
+  onEnableAudioChange: (enabled: boolean) => void;
+  enableARSound: boolean;
+  onEnableARSoundChange: (enabled: boolean) => void;
+  enableSlamPersistence: boolean;
+  onEnableSlamPersistenceChange: (enabled: boolean) => void;
+  useAbsoluteScale: boolean;
+  onUseAbsoluteScaleChange: (enabled: boolean) => void;
+}
+
+export const SettingsBottomSheet: React.FC<SettingsBottomSheetProps> = ({
+  isOpen,
+  onClose,
+  enableAudio,
+  onEnableAudioChange,
+  enableARSound,
+  onEnableARSoundChange,
+  enableSlamPersistence,
+  onEnableSlamPersistenceChange,
+  useAbsoluteScale,
+  onUseAbsoluteScaleChange,
+}) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: theme.colors.background.overlay,
+              zIndex: theme.zIndex.overlay,
+            }}
+          />
+
+          {/* Bottom Sheet */}
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: theme.colors.surface.white,
+              borderTopLeftRadius: theme.borderRadius.xl,
+              borderTopRightRadius: theme.borderRadius.xl,
+              zIndex: theme.zIndex.modal,
+              maxHeight: '70vh',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {/* Header - Fixed */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.md} ${theme.spacing.lg}`,
+              borderBottom: `1px solid ${theme.colors.surface.light}`,
+              flexShrink: 0,
+            }}>
+              <h2 style={{ color: theme.colors.text.primary, fontSize: theme.typography.fontSize.xl, fontWeight: theme.typography.fontWeight.semibold, margin: 0 }}>
+                Cài đặt
+              </h2>
+              <button
+                onClick={onClose}
+                style={{
+                  background: theme.colors.surface.light,
+                  border: 'none',
+                  borderRadius: theme.borderRadius.full,
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={20} color={theme.colors.text.tertiary} />
+              </button>
+            </div>
+
+            {/* Content - Scrollable */}
+            <div style={{ 
+              overflowY: 'auto', 
+              padding: theme.spacing.lg,
+              flex: 1,
+            }}>
+
+              {/* AR Tracking Settings */}
+              <div style={{ marginBottom: theme.spacing.xl }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+                  <Anchor size={20} color={theme.colors.primary} />
+                  <h3 style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.base, fontWeight: theme.typography.fontWeight.semibold, margin: 0 }}>
+                    Theo dõi AR
+                  </h3>
+                </div>
+
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: theme.spacing.md,
+                  background: theme.colors.surface.light,
+                  borderRadius: theme.borderRadius.md,
+                  marginBottom: theme.spacing.sm,
+                }}>
+                  <div style={{ flex: 1, marginRight: theme.spacing.md }}>
+                    <div style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginBottom: '4px' }}>
+                      Giữ AR khi mất target
+                    </div>
+                    <div style={{ color: theme.colors.text.disabled, fontSize: theme.typography.fontSize.xs }}>
+                      AR sẽ ở lại vị trí trong không gian thực
+                    </div>
+                  </div>
+                  <ToggleSwitch 
+                    checked={enableSlamPersistence} 
+                    onChange={onEnableSlamPersistenceChange} 
+                  />
+                </div>
+
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: theme.spacing.md,
+                  background: theme.colors.surface.light,
+                  borderRadius: theme.borderRadius.md,
+                }}>
+                  <div style={{ flex: 1, marginRight: theme.spacing.md }}>
+                    <div style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginBottom: '4px' }}>
+                      Kích thước tuyệt đối
+                    </div>
+                    <div style={{ color: theme.colors.text.disabled, fontSize: theme.typography.fontSize.xs }}>
+                      Sử dụng kích thước thật (mét) thay vì responsive
+                    </div>
+                  </div>
+                  <ToggleSwitch 
+                    checked={useAbsoluteScale} 
+                    onChange={onUseAbsoluteScaleChange} 
+                  />
+                </div>
+              </div>
+
+              {/* AR Sound Settings */}
+              <div style={{ marginBottom: theme.spacing.xl }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+                  <Volume2 size={20} color={theme.colors.primary} />
+                  <h3 style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.base, fontWeight: theme.typography.fontWeight.semibold, margin: 0 }}>
+                    Âm thanh AR
+                  </h3>
+                </div>
+
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: theme.spacing.md,
+                  background: theme.colors.surface.light,
+                  borderRadius: theme.borderRadius.md,
+                }}>
+                  <span style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium }}>
+                    Bật âm thanh hiệu ứng
+                  </span>
+                  <ToggleSwitch 
+                    checked={enableARSound} 
+                    onChange={onEnableARSoundChange} 
+                  />
+                </div>
+              </div>
+
+              {/* Video Settings */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+                  <Video size={20} color={theme.colors.primary} />
+                  <h3 style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.base, fontWeight: theme.typography.fontWeight.semibold, margin: 0 }}>
+                    Cài đặt Video
+                  </h3>
+                </div>
+
+                {/* Enable Audio */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: theme.spacing.md,
+                  background: theme.colors.surface.light,
+                  borderRadius: theme.borderRadius.md,
+                }}>
+                  <span style={{ color: theme.colors.text.secondary, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium }}>
+                    Ghi âm thanh
+                  </span>
+                  <ToggleSwitch 
+                    checked={enableAudio} 
+                    onChange={onEnableAudioChange} 
+                  />
+                </div>
+              </div>
+
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/SettingsButton.tsx
+================================================
+import { motion } from 'framer-motion';
+import { Settings } from 'lucide-react';
+import { theme } from '../../theme';
+
+interface SettingsButtonProps {
+  onClick: () => void;
+}
+
+export const SettingsButton: React.FC<SettingsButtonProps> = ({ onClick }) => {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      style={{
+        width: '56px',
+        height: '56px',
+        borderRadius: theme.borderRadius.full,
+        background: theme.colors.surface.white,
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: theme.shadows.md,
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <Settings size={24} color={theme.colors.text.secondary} />
+    </motion.button>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/ToggleSwitch.tsx
+================================================
+import { theme } from '../../theme';
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange }) => {
+  return (
+    <label style={{ 
+      position: 'relative', 
+      display: 'inline-block', 
+      width: '48px', 
+      height: '28px',
+      cursor: 'pointer',
+      flexShrink: 0,
+    }}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ opacity: 0, width: 0, height: 0 }}
+      />
+      <span style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: checked ? theme.colors.primary : '#ccc',
+        borderRadius: '28px',
+        transition: `all ${theme.transitions.normal}`,
+      }}>
+        <span style={{
+          position: 'absolute',
+          content: '""',
+          height: '20px',
+          width: '20px',
+          left: checked ? '24px' : '4px',
+          bottom: '4px',
+          background: theme.colors.surface.white,
+          borderRadius: theme.borderRadius.full,
+          transition: `all ${theme.transitions.normal}`,
+        }} />
+      </span>
+    </label>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/TopStatusBar.tsx
+================================================
+import { motion, AnimatePresence } from 'framer-motion';
+import { theme } from '../../theme';
+import { useRecordingTimer } from '../../hooks/useRecordingTimer';
+
+interface TopStatusBarProps {
+  isProcessingVideo: boolean;
+  isRecording: boolean;
+  isConverting?: boolean;
+}
+
+export const TopStatusBar: React.FC<TopStatusBarProps> = ({ 
+  isProcessingVideo, 
+  isRecording,
+  isConverting = false
+}) => {
+  const recordingSeconds = useRecordingTimer(isRecording);
+
+  const isVisible = isProcessingVideo || isRecording || isConverting;
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ y: -100, opacity: 0, x: '-50%' }}
+          animate={{ y: 0, opacity: 1, x: '-50%' }}
+          exit={{ y: -100, opacity: 0, x: '-50%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          style={{
+            position: 'fixed', 
+            top: 0, 
+            left: '50%',
+            background: theme.colors.background.overlayDark, 
+            color: theme.colors.text.white, 
+            padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+            borderBottomLeftRadius: theme.borderRadius.lg, 
+            borderBottomRightRadius: theme.borderRadius.lg,
+            fontSize: theme.typography.fontSize.sm, 
+            fontWeight: theme.typography.fontWeight.semibold, 
+            zIndex: theme.zIndex.processing,
+            backdropFilter: theme.backdropFilter.blur, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: theme.spacing.sm,
+            boxShadow: theme.shadows.md,
+            width: 'max-content',
+          }}
+        >
+          {isRecording ? (
+            <>
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+                style={{ 
+                  width: '6px', 
+                  height: '6px', 
+                  borderRadius: theme.borderRadius.full, 
+                  background: theme.colors.primary,
+                  boxShadow: `${theme.shadows.glow} ${theme.colors.primary}`
+                }}
+              />
+              {String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:{String(recordingSeconds % 60).padStart(2, '0')}
+            </>
+          ) : isConverting ? (
+            <>
+              <motion.span
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                style={{ 
+                  width: '12px', 
+                  height: '12px', 
+                  border: `2px solid ${theme.colors.primary}`,
+                  borderTopColor: 'transparent',
+                  borderRadius: theme.borderRadius.full,
+                }}
+              />
+              Đang chuyển đổi sang MP4...
+            </>
+          ) : (
+            <>
+              <span style={{ 
+                width: '6px', height: '6px', borderRadius: theme.borderRadius.full, background: theme.colors.secondary,
+                boxShadow: `${theme.shadows.glow} ${theme.colors.secondary}`
+              }}></span>
+              Đang xử lý {isProcessingVideo ? 'video' : 'ảnh'}...
+            </>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+
+================================================
+FILE: src/components/ui/VideoButton.tsx
+================================================
+import { motion } from 'framer-motion';
+import { Video, Square } from 'lucide-react';
+import { theme } from '../../theme';
+
+interface VideoButtonProps {
+  isRecording: boolean;
+  onToggle: () => void;
+  isActive: boolean;
+}
+
+export const VideoButton: React.FC<VideoButtonProps> = ({ isRecording, onToggle }) => {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.9 }}
+      onClick={onToggle}
+      style={{
+        width: '64px',
+        height: '52px',
+        borderRadius: '26px',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        WebkitTapHighlightColor: 'transparent',
+        outline: 'none',
+      }}
+    >
+      {isRecording ? (
+        <Square size={20} color={theme.colors.text.white} fill={theme.colors.text.white} />
+      ) : (
+        <Video size={26} color={theme.colors.text.white} fill={theme.colors.text.white} strokeWidth={2} />
+      )}
+    </motion.button>
+  );
+};
+
+
+
+================================================
+FILE: src/components/ui/index.ts
+================================================
+export * from './CaptureButton';
+export * from './VideoButton';
+export * from './ResetButton';
+export * from './SettingsButton';
+export * from './SettingsBottomSheet';
+export * from './MediaPreview';
+export * from './CaptureFlash';
+export * from './TopStatusBar';
+export * from './ToggleSwitch';
+export * from './ScanningGuide';
+
+
+================================================
+FILE: src/hooks/useARCaptureMedia.ts
+================================================
+import { useState } from 'react';
+import { getMediaRecorder } from '../utils/customMediaRecorder';
+import { convertToMP4, needsConversion } from '../utils/videoConverter';
+
+export type CaptureMode = 'photo' | 'video';
+
+export const useARCaptureMedia = (
+  enableAudio: boolean,
+  onCapture?: (blob: Blob) => void,
+  onRecordStop?: (blob: Blob) => void
+) => {
+  const [mode, setMode] = useState<CaptureMode>('photo');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingVideo, setIsProcessingVideo] = useState(false);
+  const [showFlash, setShowFlash] = useState(false);
+  const [preview, setPreview] = useState<{ type: 'photo' | 'video', url: string, blob: Blob } | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+
+  const mediaRecorder = getMediaRecorder();
+
+  const handleCapture = () => {
+    if (mode !== 'photo') {
+      setMode('photo');
+      return;
+    }
+    if (preview) return;
+
+    const canvas = document.getElementById('camerafeed') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    setShowFlash(true);
+    const dataUrl = canvas.toDataURL('image/png');
+    
+    setPreview({ type: 'photo', url: dataUrl, blob: new Blob() });
+    setShowFlash(false);
+
+    fetch(dataUrl)
+      .then(res => res.blob())
+      .then(blob => setPreview(prev => prev ? { ...prev, blob } : null))
+      .catch(error => console.error('[Photo] Error creating blob:', error));
+  };
+
+  const handleVideoClick = async () => {
+    if (preview) return;
+
+    if (isRecording) {
+      mediaRecorder.stopRecording();
+      setIsRecording(false);
+      setIsProcessingVideo(true);
+      return;
+    }
+    
+    if (mode !== 'video') {
+      setMode('video');
+      return;
+    }
+
+    const canvas = document.getElementById('camerafeed') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    try {
+      await mediaRecorder.startRecording({
+        canvas,
+        fps: 30,
+        videoBitsPerSecond: 8000000,
+        includeAudio: enableAudio,
+        onStart: () => setIsRecording(true),
+        onStop: () => setIsProcessingVideo(false),
+        onDataAvailable: async (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+          setPreview({ type: 'video', url, blob });
+          
+          // Auto-convert to MP4 in background nếu cần
+          if (needsConversion(blob)) {
+            console.log('[Video] Auto-converting to MP4...');
+            setIsConverting(true);
+            try {
+              const mp4Blob = await convertToMP4(blob);
+              const mp4Url = URL.createObjectURL(mp4Blob);
+              
+              // Update preview với MP4 blob
+              setPreview({ type: 'video', url: mp4Url, blob: mp4Blob });
+              
+              // Cleanup old URL
+              URL.revokeObjectURL(url);
+              
+              console.log('[Video] Conversion completed');
+            } catch (error) {
+              console.error('[Video] Conversion failed:', error);
+            } finally {
+              setIsConverting(false);
+            }
+          }
+        },
+        onError: (error: Error) => {
+          console.error('[Video] Recording error:', error);
+          setIsRecording(false);
+          setIsProcessingVideo(false);
+        },
+      });
+    } catch (error) {
+      console.error('[Video] Failed to start recording:', error);
+      setIsRecording(false);
+      setIsProcessingVideo(false);
+    }
+  };
+
+  const handleSavePreview = () => {
+    if (!preview) return;
+    
+    if (preview.type === 'photo') {
+      onCapture?.(preview.blob);
+    } else {
+      onRecordStop?.(preview.blob);
+    }
+
+    const a = document.createElement('a');
+    if (preview.blob.size > 0) {
+      const blobUrl = URL.createObjectURL(preview.blob);
+      a.href = blobUrl;
+      
+      // LUÔN dùng PNG cho ảnh và MP4 cho video
+      const extension = preview.type === 'photo' ? 'png' : 'mp4';
+      a.download = `grad_ar_${Date.now()}.${extension}`;
+      
+      console.log('[Save] Downloading:', { 
+        type: preview.type, 
+        blobType: preview.blob.type, 
+        extension, 
+        size: preview.blob.size 
+      });
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+    } else {
+      a.href = preview.url;
+      const extension = preview.type === 'photo' ? 'png' : 'mp4';
+      a.download = `grad_ar_${Date.now()}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    setPreview(null);
+  };
+
+  const handleDiscardPreview = () => {
+    setPreview(null);
+  };
+
+  return {
+    mode, setMode,
+    isRecording, isProcessingVideo, isConverting,
+    showFlash, preview,
+    handleCapture, handleVideoClick,
+    handleSavePreview, handleDiscardPreview
+  };
+};
+
+
+================================================
+FILE: src/hooks/useARSettings.ts
+================================================
+import { useState, useEffect } from 'react';
+
+export const useARSettings = () => {
+  const [enableAudio, setEnableAudio] = useState(false);
+  
+  const [enableARSound, setEnableARSound] = useState(() => {
+    const saved = localStorage.getItem('enableARSound');
+    return saved !== null ? saved === 'true' : true;
+  });
+  
+  const [enableSlamPersistence, setEnableSlamPersistence] = useState(() => {
+    const saved = localStorage.getItem('enableSlamPersistence');
+    return saved !== null ? saved === 'true' : true;
+  });
+  
+  const [useAbsoluteScale, setUseAbsoluteScale] = useState(() => {
+    const saved = localStorage.getItem('useAbsoluteScale');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('enableARSound', enableARSound.toString());
+    window.dispatchEvent(new CustomEvent('settingsChanged', { 
+      detail: { setting: 'enableARSound', value: enableARSound } 
+    }));
+  }, [enableARSound]);
+
+  useEffect(() => {
+    localStorage.setItem('enableSlamPersistence', enableSlamPersistence.toString());
+    window.dispatchEvent(new CustomEvent('settingsChanged', { 
+      detail: { setting: 'enableSlamPersistence', value: enableSlamPersistence } 
+    }));
+  }, [enableSlamPersistence]);
+
+  useEffect(() => {
+    localStorage.setItem('useAbsoluteScale', useAbsoluteScale.toString());
+    window.dispatchEvent(new CustomEvent('settingsChanged', { 
+      detail: { setting: 'useAbsoluteScale', value: useAbsoluteScale } 
+    }));
+  }, [useAbsoluteScale]);
+
+  return {
+    enableAudio, setEnableAudio,
+    enableARSound, setEnableARSound,
+    enableSlamPersistence, setEnableSlamPersistence,
+    useAbsoluteScale, setUseAbsoluteScale
+  };
+};
+
+
+================================================
+FILE: src/hooks/useRecordingTimer.ts
+================================================
+import { useState, useEffect } from 'react';
+
+/**
+ * Custom hook to manage recording timer state.
+ * @param isRecording Boolean indicating if a recording is currently active.
+ * @returns The current recording duration in seconds.
+ */
+export const useRecordingTimer = (isRecording: boolean) => {
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!isRecording) {
+      return;
+    }
+
+    setRecordingSeconds(0);
+
+    const interval = setInterval(() => {
+      setRecordingSeconds(s => s + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
+  return recordingSeconds;
+};
+
+
+================================================
+FILE: src/hooks/useXREvents.ts
+================================================
+import { useEffect, useState } from 'react';
+import { addXRExtrasEventListener, XRExtrasEvents } from '../utils/xrExtrasEvents';
+
+export const useXREvents = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkVisibility = () => {
+      setTimeout(() => {
+        const almostThereContainer = document.getElementById('almostthereContainer');
+        const loadingContainer = document.getElementById('loadingContainer');
+        
+        const isAlmostThereHidden = !almostThereContainer || almostThereContainer.classList.contains('hidden');
+        const isLoadingHidden = !loadingContainer || loadingContainer.classList.contains('hidden');
+        
+        if (isAlmostThereHidden && isLoadingHidden) {
+          setIsLoading(false);
+        } else {
+          setIsLoading(true);
+        }
+      }, 100);
+    };
+
+    const removeLoadingShown = addXRExtrasEventListener(XRExtrasEvents.LOADING_SHOWN, () => setIsLoading(true));
+    const removeLoadingHidden = addXRExtrasEventListener(XRExtrasEvents.LOADING_HIDDEN, checkVisibility);
+    
+    const removeAlmostThereShown = addXRExtrasEventListener(XRExtrasEvents.ALMOST_THERE_SHOWN, () => setIsLoading(true));
+    const removeAlmostThereHidden = addXRExtrasEventListener(XRExtrasEvents.ALMOST_THERE_HIDDEN, checkVisibility);
+
+    return () => {
+      removeLoadingShown?.();
+      removeLoadingHidden?.();
+      removeAlmostThereShown?.();
+      removeAlmostThereHidden?.();
+    };
+  }, []);
+
+  return { isLoading, setIsLoading };
+};
+
+
+================================================
+FILE: src/index.css
+================================================
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* Tắt highlight khi tap trên mobile */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #000;
+}
+
+/* Canvas sẽ được XRExtras FullWindowCanvas quản lý */
+#camerafeed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+/* Cho phép select text trong input và textarea */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.ghost-image-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 400px;
+  height: 60%;
+  max-height: 300px;
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(2px);
+}
+
+.ghost-image-overlay p {
+  color: white;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  font-family: system-ui, -apple-system, sans-serif;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.ghost-image-overlay svg {
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+}
+
+
+================================================
+FILE: src/main.tsx
+================================================
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import "./styles/pwa-installer-custom.css";
+import App from "./App.tsx";
+import eruda from 'eruda';
+
+// Init Eruda for mobile debugging
+if (import.meta.env.DEV || window.location.search.includes('debug')) {
+  eruda.init();
+}
+
+createRoot(document.getElementById("root")!).render(<App />);
+
+
+================================================
+FILE: src/styles/pwa-installer-custom.css
+================================================
+/* Custom PWA Installer - Match SettingsBottomSheet style */
+
+/* Backdrop - Match theme overlay */
+.pwa-installer-root .backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Drawer - Match bottom sheet style, gọn theo nội dung */
+.pwa-installer-root .drawer {
+  background-color: #ffffff !important;
+  border-top-left-radius: 24px !important;
+  border-top-right-radius: 24px !important;
+  box-shadow: 0px -4px 20px rgba(0, 0, 0, 0.1) !important;
+  max-height: 70vh !important;
+  height: auto !important;
+}
+
+/* Container padding */
+.pwa-installer-root .drawer .container {
+  width: 100% !important;
+}
+
+.pwa-installer-root .drawer .container .content {
+  padding: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* Close button - No background, just icon */
+.pwa-installer-root .drawer .container .content .close-button {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px !important;
+  cursor: pointer !important;
+}
+
+.pwa-installer-root .drawer .container .content .close-button .close::before,
+.pwa-installer-root .drawer .container .content .close-button .close::after {
+  background-color: #9ca3af !important;
+  height: 20px !important;
+  width: 2px !important;
+}
+
+/* Icon container */
+.pwa-installer-root .drawer .container .content .icon-container {
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
+  filter: none !important;
+}
+
+.pwa-installer-root .drawer .container .content .icon-container .icon-preview {
+  width: 80px !important;
+  height: 80px !important;
+  margin-top: 0 !important;
+  border-radius: 50% !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  object-fit: cover !important;
+}
+
+/* PWA Name - Match theme typography */
+.pwa-installer-root .drawer .container .content .pwa-name {
+  color: #1f2937 !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin: 8px 0 !important;
+}
+
+/* Install title */
+.pwa-installer-root .drawer .container .content .install-title {
+  color: #4b5563 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 4px 0 !important;
+}
+
+/* Install subtitle */
+.pwa-installer-root .drawer .container .content .install-subtitle {
+  color: #9ca3af !important;
+  font-size: 14px !important;
+  margin: 0 0 24px 0 !important;
+}
+
+/* iOS install text */
+.pwa-installer-root .drawer .container .content .install-action-text {
+  color: #4b5563 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  text-align: center !important;
+  padding: 16px !important;
+  background: #f5f5f5 !important;
+  border-radius: 12px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Install button - Match MediaPreview style (màu đỏ #ef5350) */
+.pwa-installer-root .drawer .container .content .install-button {
+  background: #ef5350 !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  padding: 16px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(239, 83, 80, 0.25) !important;
+  transition: all 0.3s ease !important;
+  text-transform: none !important;
+  margin-top: 0 !important;
+  width: 100% !important;
+  max-width: 160px !important;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.pwa-installer-root .drawer .container .content .install-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(239, 83, 80, 0.3) !important;
+}
+
+.pwa-installer-root .drawer .container .content .install-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 12px rgba(239, 83, 80, 0.25) !important;
+}
+
+/* Hidden class */
+.pwa-installer-root .hidden {
+  display: none !important;
+}
+
+
+================================================
+FILE: src/theme/README.md
+================================================
+# Theme System - GradAR
+
+File theme chung cho toàn bộ dự án AR, giúp duy trì tính nhất quán về màu sắc, khoảng cách, và style.
+
+## Cách sử dụng
+
+```typescript
+import { theme } from '../theme';
+
+// Sử dụng trong style
+style={{
+  background: theme.colors.primary,
+  padding: theme.spacing.md,
+  borderRadius: theme.borderRadius.lg,
+}}
+```
+
+## Cấu trúc Theme
+
+### Colors (Màu sắc)
+- `primary`: Màu chính (#ef5350 - đỏ)
+- `secondary`: Màu phụ (#ff00cc - hồng)
+- `background`: Màu nền (dark, overlay, overlayDark, overlayLight)
+- `surface`: Màu bề mặt (white, light, glass, glassDark, glassLight)
+- `text`: Màu chữ (primary, secondary, tertiary, disabled, white)
+- `border`: Màu viền (light, medium)
+
+### Spacing (Khoảng cách)
+- `xs`: 4px
+- `sm`: 8px
+- `md`: 16px
+- `lg`: 24px
+- `xl`: 32px
+- `xxl`: 40px
+
+### Border Radius (Bo góc)
+- `sm`: 8px
+- `md`: 12px
+- `lg`: 16px
+- `xl`: 24px
+- `xxl`: 32px
+- `full`: 50% (hình tròn)
+- `pill`: 40px (hình viên thuốc)
+
+### Shadows (Bóng đổ)
+- `sm`: Bóng nhỏ
+- `md`: Bóng trung bình
+- `lg`: Bóng lớn
+- `glow`: Hiệu ứng phát sáng
+
+### Typography (Chữ)
+- `fontSize`: xs, sm, md, base, lg, xl, xxl
+- `fontWeight`: normal, medium, semibold, bold
+
+### Transitions (Chuyển động)
+- `fast`: 0.15s
+- `normal`: 0.3s
+- `slow`: 0.5s
+
+### Z-Index (Thứ tự lớp)
+- `base`: 0
+- `controls`: 1000
+- `overlay`: 1100
+- `modal`: 1101
+- `flash`: 9998
+- `processing`: 9999
+- `preview`: 10000
+
+### Backdrop Filter (Hiệu ứng mờ)
+- `blur`: blur(10px)
+- `blurStrong`: blur(20px)
+
+## Ví dụ
+
+### Button với theme
+```typescript
+<button
+  style={{
+    background: theme.colors.primary,
+    color: theme.colors.text.white,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    transition: `all ${theme.transitions.normal}`,
+  }}
+>
+  Click me
+</button>
+```
+
+### Glass effect card
+```typescript
+<div
+  style={{
+    background: theme.colors.surface.glass,
+    backdropFilter: theme.backdropFilter.blur,
+    border: `1px solid ${theme.colors.border.light}`,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+  }}
+>
+  Content
+</div>
+```
+
+## Lợi ích
+
+1. **Nhất quán**: Tất cả component sử dụng cùng một bộ giá trị
+2. **Dễ bảo trì**: Chỉ cần thay đổi ở một nơi
+3. **Type-safe**: TypeScript hỗ trợ autocomplete
+4. **Responsive**: Dễ dàng điều chỉnh cho các breakpoint khác nhau
+
+
+================================================
+FILE: src/theme/index.ts
+================================================
+// Theme chung cho toàn bộ dự án AR
+export const theme = {
+  // Colors
+  colors: {
+    primary: '#ef5350',
+    primaryDark: '#d32f2f',
+    primaryLight: '#ff6659',
+    
+    secondary: '#ff00cc',
+    secondaryDark: '#cc0099',
+    
+    background: {
+      dark: '#000000',
+      overlay: 'rgba(0, 0, 0, 0.5)',
+      overlayDark: 'rgba(0, 0, 0, 0.8)',
+      overlayLight: 'rgba(0, 0, 0, 0.3)',
+    },
+    
+    surface: {
+      white: '#ffffff',
+      light: '#f5f5f5',
+      glass: 'rgba(255, 255, 255, 0.2)',
+      glassDark: 'rgba(255, 255, 255, 0.15)',
+      glassLight: 'rgba(255, 255, 255, 0.3)',
+    },
+    
+    text: {
+      primary: '#1a1a2e',
+      secondary: '#333333',
+      tertiary: '#666666',
+      disabled: '#999999',
+      white: '#ffffff',
+    },
+    
+    border: {
+      light: 'rgba(255, 255, 255, 0.2)',
+      medium: 'rgba(255, 255, 255, 0.3)',
+    },
+  },
+  
+  // Spacing
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '40px',
+  },
+  
+  // Border Radius
+  borderRadius: {
+    sm: '8px',
+    md: '12px',
+    lg: '16px',
+    xl: '24px',
+    xxl: '32px',
+    full: '50%',
+    pill: '40px',
+  },
+  
+  // Shadows
+  shadows: {
+    sm: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    md: '0 4px 20px rgba(0, 0, 0, 0.15)',
+    lg: '0 8px 32px rgba(0, 0, 0, 0.2)',
+    glow: '0 0 10px',
+  },
+  
+  // Typography
+  typography: {
+    fontSize: {
+      xs: '12px',
+      sm: '14px',
+      md: '15px',
+      base: '16px',
+      lg: '18px',
+      xl: '20px',
+      xxl: '24px',
+    },
+    fontWeight: {
+      normal: '400',
+      medium: '500',
+      semibold: '600',
+      bold: '700',
+    },
+  },
+  
+  // Transitions
+  transitions: {
+    fast: '0.15s',
+    normal: '0.3s',
+    slow: '0.5s',
+  },
+  
+  // Z-Index
+  zIndex: {
+    base: 0,
+    controls: 1000,
+    overlay: 1100,
+    modal: 1101,
+    flash: 9998,
+    processing: 9999,
+    preview: 10000,
+  },
+  
+  // Backdrop Filter
+  backdropFilter: {
+    blur: 'blur(10px)',
+    blurStrong: 'blur(20px)',
+  },
+} as const;
+
+export type Theme = typeof theme;
+
+
+================================================
+FILE: src/types/mind-ar.d.ts
+================================================
+declare module "mind-ar/dist/mindar-image-three.prod.js" {
+  import * as THREE from "three";
+
+  interface MindARThreeOptions {
+    container: HTMLElement;
+    imageTargetSrc: string;
+    maxTrack?: number;
+    filterMinCF?: number;
+    filterBeta?: number;
+    warmupTolerance?: number;
+    missTolerance?: number;
+    uiLoading?: string;
+    uiScanning?: string;
+    uiError?: string;
+    videoSettings?: {
+      width?: { ideal?: number; min?: number; max?: number } | number;
+      height?: { ideal?: number; min?: number; max?: number } | number;
+      facingMode?: string;
+    };
+  }
+
+  interface Anchor {
+    group: THREE.Group;
+    onTargetFound?: () => void;
+    onTargetLost?: () => void;
+  }
+
+  export class MindARThree {
+    constructor(options: MindARThreeOptions);
+    renderer: THREE.WebGLRenderer;
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    addAnchor(targetIndex: number): Anchor;
+    start(): Promise<void>;
+    stop(): void;
+  }
+}
+
+
+================================================
+FILE: src/types/vite.d.ts
+================================================
+declare module "vite";
+declare module "@vitejs/plugin-basic-ssl";
+
+
+================================================
+FILE: src/types/xr8.d.ts
+================================================
+// 8th Wall XR8 Type Definitions
+import * as THREE from 'three';
+
+export interface XR8ImageTarget {
+  name: string;
+  type: string;
+  metadata?: any;
+}
+
+export interface XR8CameraPipelineModule {
+  name: string;
+  onStart?: (args: { canvas: HTMLCanvasElement; canvasWidth: number; canvasHeight: number }) => void;
+  onAttach?: (args: { canvas: HTMLCanvasElement }) => void;
+  onDetach?: () => void;
+  onUpdate?: (args: { processCpuResult: any }) => void;
+  onCameraStatusChange?: (args: { status: string; reason?: string }) => void;
+  onException?: (error: Error) => void;
+  listeners?: Array<{
+    event: string;
+    process: (event: any) => void;
+  }>;
+}
+
+export interface XR8Controller {
+  configure: (config: {
+    imageTargetData?: XR8ImageTarget[];
+    scale?: 'absolute' | 'responsive';
+    disableWorldTracking?: boolean;
+  }) => void;
+  updateCameraProjectionMatrix: (config: {
+    origin: { x: number; y: number; z: number };
+    facing: { x: number; y: number; z: number };
+  }) => void;
+  pipelineModule: () => XR8CameraPipelineModule;
+  videoStream: () => MediaStream | null;
+}
+
+export interface XR8CameraPipeline {
+  addCameraPipelineModule: (module: XR8CameraPipelineModule) => void;
+  addCameraPipelineModules: (modules: XR8CameraPipelineModule[]) => void;
+  removeCameraPipelineModule: (name: string) => void;
+  run: (config: {
+    canvas: HTMLCanvasElement;
+    allowedDevices?: string;
+    cameraConfig?: {
+      direction?: 'front' | 'back';
+    };
+    ownRunLoop?: boolean;
+  }) => Promise<void>;
+  stop: () => void;
+  pause: () => void;
+  resume: () => void;
+  configure: (config: any) => void;
+}
+
+export interface XR8ThreePipeline {
+  xrScene: () => {
+    scene: THREE.Scene;
+    camera: THREE.Camera;
+    renderer: THREE.WebGLRenderer;
+  };
+  pipelineModule: () => XR8CameraPipelineModule;
+}
+
+export interface XR8MediaRecorder {
+  configure: (config: {
+    requestMic?: boolean;
+    coverImageUrl?: string;
+    maxDurationMs?: number;
+    watermarkImageUrl?: string;
+    watermarkMaxWidth?: number;
+    watermarkMaxHeight?: number;
+    watermarkLocation?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+  }) => void;
+  recordVideo: (config: {
+    onVideoReady: (result: { url: string; blob: Blob }) => void;
+    onProcessFrame?: () => void;
+  }) => void;
+  stopRecording: () => void;
+  pipelineModule: () => XR8CameraPipelineModule;
+}
+
+export interface XR8Type {
+  XrController: XR8Controller;
+  CameraPipeline: XR8CameraPipeline;
+  Threejs: XR8ThreePipeline;
+  MediaRecorder: XR8MediaRecorder;
+  GlTextureRenderer: {
+    pipelineModule: (config?: {
+      vertexSource?: string;
+      fragmentSource?: string;
+      toTexture?: any;
+      flipY?: boolean;
+    }) => XR8CameraPipelineModule;
+  };
+  addCameraPipelineModules: (modules: XR8CameraPipelineModule[]) => void;
+  addCameraPipelineModule: (module: XR8CameraPipelineModule) => void;
+  run: (config: { canvas: HTMLCanvasElement }) => Promise<void>;
+  stop: () => void;
+  pause: () => void;
+  resume: () => void;
+  version: string;
+}
+
+declare global {
+  interface Window {
+    XR8?: XR8Type;
+    XRExtras?: any;
+  }
+}
+
+export default XR8Type;
+
+
+================================================
+FILE: src/types/xrextras.d.ts
+================================================
+// Type definitions for XRExtras
+declare global {
+  interface Window {
+    XRExtras?: {
+      // Core modules
+      Loading: {
+        pipelineModule: () => any;
+        showLoading: (args?: { waitForRealityTexture?: boolean; onxrloaded?: () => void }) => void;
+        setAppLoadedProvider: (appLoaded: () => boolean) => void;
+      };
+      RuntimeError: {
+        pipelineModule: () => any;
+        hideRuntimeError: () => void;
+      };
+      AlmostThere: {
+        pipelineModule: () => any;
+      };
+      
+      // Canvas & Performance
+      FullWindowCanvas: {
+        pipelineModule: () => any;
+      };
+      PauseOnHidden: {
+        pipelineModule: () => any;
+      };
+      PauseOnBlur: {
+        pipelineModule: () => any;
+      };
+      
+      // Debug & Stats
+      DebugWebViews: {
+        enableLogToScreen: () => void;
+      };
+      Stats: {
+        pipelineModule: () => any;
+      };
+      
+      // Media Recording
+      MediaRecorder: {
+        configure: (config: {
+          requestMic?: boolean;
+          coverImageUrl?: string;
+          maxDurationMs?: number;
+          watermarkImageUrl?: string;
+          watermarkMaxWidth?: number;
+          watermarkMaxHeight?: number;
+          watermarkLocation?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+        }) => void;
+        startRecording: () => void;
+        stopRecording: () => Promise<Blob>;
+        isRecording: () => boolean;
+      };
+      
+      // Framework integrations
+      AFrame: {
+        registerXrExtrasComponents: () => void;
+      };
+      PlayCanvas: any;
+      ThreeExtras: any;
+      
+      // Other utilities
+      Lifecycle: any;
+      PwaInstaller: {
+        configure: (config: any) => void;
+        pipelineModule: () => any;
+        setDisplayAllowed: (allowed: boolean) => void;
+      };
+      SessionReconfigure: {
+        pipelineModule: () => any;
+      };
+    };
+  }
+}
+
+export {};
+
+
+================================================
+FILE: src/utils/customMediaRecorder.ts
+================================================
+/**
+ * Custom MediaRecorder implementation
+ * Thay thế XR8.MediaRecorder để có control tốt hơn về FPS và quality
+ */
+
+interface RecordingOptions {
+  canvas: HTMLCanvasElement;
+  fps?: number;
+  videoBitsPerSecond?: number;
+  audioBitsPerSecond?: number;
+  includeAudio?: boolean;
+  onStart?: () => void;
+  onStop?: () => void;
+  onDataAvailable?: (blob: Blob) => void;
+  onError?: (error: Error) => void;
+}
+
+export class CustomMediaRecorder {
+  private mediaRecorder: MediaRecorder | null = null;
+  private recordedChunks: Blob[] = [];
+  private stream: MediaStream | null = null;
+  private audioStream: MediaStream | null = null;
+
+  async startRecording(options: RecordingOptions): Promise<void> {
+    const {
+      canvas,
+      fps = 30,
+      videoBitsPerSecond = 8000000, // 8 Mbps
+      audioBitsPerSecond = 128000, // 128 kbps
+      includeAudio = false,
+      onStart,
+      onStop,
+      onDataAvailable,
+      onError,
+    } = options;
+
+    try {
+      // Capture canvas stream với FPS cố định
+      this.stream = canvas.captureStream(fps);
+      console.log('[CustomMediaRecorder] Canvas stream captured at', fps, 'FPS');
+
+      // Thêm audio track nếu cần
+      if (includeAudio) {
+        try {
+          this.audioStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            } 
+          });
+          
+          // Add audio tracks vào video stream
+          this.audioStream.getAudioTracks().forEach(track => {
+            this.stream!.addTrack(track);
+          });
+          
+          console.log('[CustomMediaRecorder] Audio track added');
+        } catch (audioError) {
+          console.warn('[CustomMediaRecorder] Failed to get audio:', audioError);
+          // Continue without audio
+        }
+      }
+
+      // Chọn mimeType tốt nhất
+      const mimeType = this.getBestMimeType();
+      console.log('[CustomMediaRecorder] Using mimeType:', mimeType);
+
+      // Tạo MediaRecorder
+      this.mediaRecorder = new MediaRecorder(this.stream, {
+        mimeType,
+        videoBitsPerSecond,
+        audioBitsPerSecond,
+      });
+
+      this.recordedChunks = [];
+
+      // Event handlers
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstart = () => {
+        console.log('[CustomMediaRecorder] Recording started');
+        onStart?.();
+      };
+
+      this.mediaRecorder.onstop = () => {
+        console.log('[CustomMediaRecorder] Recording stopped');
+        
+        // Tạo blob từ chunks với MIME type chính xác
+        const blob = new Blob(this.recordedChunks, { type: mimeType });
+        console.log('[CustomMediaRecorder] Video blob created:', {
+          size: blob.size,
+          type: blob.type,
+          mimeType: mimeType
+        });
+        
+        onDataAvailable?.(blob);
+        onStop?.();
+        
+        // Cleanup
+        this.cleanup();
+      };
+
+      this.mediaRecorder.onerror = (event: Event) => {
+        const error = new Error('MediaRecorder error: ' + (event as any).error);
+        console.error('[CustomMediaRecorder]', error);
+        onError?.(error);
+        this.cleanup();
+      };
+
+      // Start recording
+      this.mediaRecorder.start(100); // Collect data every 100ms
+      
+    } catch (error) {
+      console.error('[CustomMediaRecorder] Failed to start recording:', error);
+      onError?.(error as Error);
+      this.cleanup();
+      throw error;
+    }
+  }
+
+  stopRecording(): void {
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      console.log('[CustomMediaRecorder] Stopping recording...');
+      this.mediaRecorder.stop();
+    }
+  }
+
+  isRecording(): boolean {
+    return this.mediaRecorder?.state === 'recording';
+  }
+
+  private getBestMimeType(): string {
+    // Ưu tiên MP4 format để có metadata đầy đủ
+    const types = [
+      'video/mp4;codecs=avc1,mp4a',
+      'video/mp4;codecs=h264,aac',
+      'video/mp4',
+      'video/webm;codecs=h264,opus',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+    ];
+
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        console.log('[CustomMediaRecorder] Selected mimeType:', type);
+        return type;
+      }
+    }
+
+    // Fallback
+    return 'video/webm';
+  }
+
+  private cleanup(): void {
+    // Stop all tracks
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+
+    if (this.audioStream) {
+      this.audioStream.getTracks().forEach(track => track.stop());
+      this.audioStream = null;
+    }
+
+    this.mediaRecorder = null;
+  }
+}
+
+// Singleton instance
+let recorderInstance: CustomMediaRecorder | null = null;
+
+export const getMediaRecorder = (): CustomMediaRecorder => {
+  if (!recorderInstance) {
+    recorderInstance = new CustomMediaRecorder();
+  }
+  return recorderInstance;
+};
+
+
+================================================
+FILE: src/utils/slamPersistence.ts
+================================================
+/**
+ * SLAM Persistence Module - Sử dụng XR8 World Tracking đúng chuẩn
+ * Giữ AR objects trong không gian thực khi mất image target
+ * 
+ * Cách hoạt động:
+ * - XR8 có SLAM (6DoF tracking) luôn chạy ngầm
+ * - Khi mất image target, ta KHÔNG ẩn object
+ * - Object sẽ tự động được giữ ở vị trí trong world space nhờ SLAM
+ * - AR sẽ ở lại MÃI MÃI cho đến khi tìm lại target hoặc tắt app
+ */
+
+import * as THREE from 'three';
+
+interface SlamPersistenceConfig {
+  enabled: boolean;
+}
+
+export class SlamPersistence {
+  private config: SlamPersistenceConfig;
+  private isTrackingLost: boolean = false;
+
+  constructor(config?: Partial<SlamPersistenceConfig>) {
+    this.config = {
+      enabled: true,
+      ...config,
+    };
+  }
+
+  /**
+   * Xử lý khi mất image target
+   * KHÔNG ẩn object, để SLAM tracking tự động giữ vị trí
+   */
+  onTargetLost(anchorGroup: THREE.Group) {
+    if (!this.config.enabled) {
+      // Nếu tắt persistence, ẩn ngay
+      anchorGroup.visible = false;
+      return;
+    }
+
+    // Giữ nguyên visible = true
+    // XR8 SLAM sẽ tự động track vị trí trong world space
+    anchorGroup.visible = true;
+    
+    this.isTrackingLost = true;
+  }
+
+  /**
+   * Xử lý khi tìm lại target
+   */
+  onTargetFound(anchorGroup: THREE.Group) {
+    anchorGroup.visible = true;
+    this.isTrackingLost = false;
+  }
+
+  /**
+   * Update mỗi frame - không làm gì cả vì không có fade out
+   */
+  update(_anchorGroup: THREE.Group, _deltaTime: number) {
+    // Không cần update gì, SLAM tự động xử lý
+  }
+
+  /**
+   * Bật/tắt persistence
+   */
+  setEnabled(enabled: boolean) {
+    this.config.enabled = enabled;
+  }
+
+  /**
+   * Check xem có đang tracking với SLAM không
+   */
+  isUsingSlamTracking(): boolean {
+    return this.isTrackingLost;
+  }
+
+  /**
+   * Reset state và ẩn AR objects
+   */
+  reset(anchorGroup?: THREE.Group) {
+    this.isTrackingLost = false;
+    if (anchorGroup) {
+      anchorGroup.visible = false;
+    }
+  }
+}
+
+
+================================================
+FILE: src/utils/videoConverter.ts
+================================================
+/**
+ * Video Converter Utility
+ * Convert WebM to MP4 using FFmpeg.wasm
+ */
+
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
+
+let ffmpegInstance: FFmpeg | null = null;
+let isFFmpegLoaded = false;
+
+/**
+ * Load FFmpeg instance (singleton)
+ */
+async function loadFFmpeg(): Promise<FFmpeg> {
+  if (ffmpegInstance && isFFmpegLoaded) {
+    return ffmpegInstance;
+  }
+
+  if (!ffmpegInstance) {
+    ffmpegInstance = new FFmpeg();
+  }
+
+  if (!isFFmpegLoaded) {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    
+    await ffmpegInstance.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+    
+    isFFmpegLoaded = true;
+    console.log('[VideoConverter] FFmpeg loaded successfully');
+  }
+
+  return ffmpegInstance;
+}
+
+/**
+ * Convert WebM blob to MP4 blob
+ */
+export async function convertToMP4(inputBlob: Blob): Promise<Blob> {
+  // Nếu đã là MP4, return luôn
+  if (inputBlob.type.includes('mp4')) {
+    console.log('[VideoConverter] Already MP4, skipping conversion');
+    return inputBlob;
+  }
+
+  console.log('[VideoConverter] Starting conversion...', {
+    inputType: inputBlob.type,
+    inputSize: inputBlob.size,
+  });
+
+  try {
+    const ffmpeg = await loadFFmpeg();
+
+    // Write input file
+    const inputFileName = 'input.webm';
+    const outputFileName = 'output.mp4';
+    
+    await ffmpeg.writeFile(inputFileName, await fetchFile(inputBlob));
+
+    // Convert với settings tối ưu cho mobile
+    await ffmpeg.exec([
+      '-i', inputFileName,
+      '-c:v', 'libx264',        // H.264 codec
+      '-preset', 'fast',         // Fast encoding
+      '-crf', '23',              // Quality (18-28, lower = better)
+      '-c:a', 'aac',             // AAC audio codec
+      '-b:a', '128k',            // Audio bitrate
+      '-movflags', '+faststart', // Enable streaming
+      outputFileName
+    ]);
+
+    // Read output file
+    const data = await ffmpeg.readFile(outputFileName);
+    const mp4Blob = new Blob([data as BlobPart], { type: 'video/mp4' });
+
+    // Cleanup
+    await ffmpeg.deleteFile(inputFileName);
+    await ffmpeg.deleteFile(outputFileName);
+
+    console.log('[VideoConverter] Conversion completed', {
+      outputSize: mp4Blob.size,
+      outputType: mp4Blob.type,
+    });
+
+    return mp4Blob;
+  } catch (error) {
+    console.error('[VideoConverter] Conversion failed:', error);
+    // Fallback: return original blob
+    return inputBlob;
+  }
+}
+
+/**
+ * Check if blob needs conversion
+ */
+export function needsConversion(blob: Blob): boolean {
+  return !blob.type.includes('mp4') && blob.type.includes('video');
+}
+
+
+================================================
+FILE: src/utils/xr8Setup.ts
+================================================
+import * as THREE from 'three';
+import { CongratulationText, ChibiCharacter } from '../components/effects';
+import { getXRExtrasPipelineModules, initXRExtras } from './xrExtrasConfig';
+import { SlamPersistence } from './slamPersistence';
+
+interface XR8SceneSetup {
+  scene: THREE.Scene;
+  renderer: THREE.WebGLRenderer;
+  anchorGroup: THREE.Group;
+  congratText: CongratulationText;
+  chibiCharacter: ChibiCharacter;
+  audio: HTMLAudioElement;
+  clock: THREE.Clock;
+  slamPersistence: SlamPersistence;
+  imageTarget: any;
+  useAbsoluteScale: boolean;
+}
+
+export const createXR8Scene = async (
+  canvas: HTMLCanvasElement,
+  targetSrc: string,
+  onTargetFound: () => void,
+  onTargetLost: () => void,
+  enableSlamPersistence: boolean = true,
+  useAbsoluteScale: boolean = true
+): Promise<XR8SceneSetup> => {
+  // Wait for XR8 and XRExtras to load
+  await Promise.all([
+    new Promise<void>((resolve) => {
+      if (window.XR8) {
+        resolve();
+      } else {
+        window.addEventListener('xrloaded', () => resolve(), { once: true });
+      }
+    }),
+    new Promise<void>((resolve) => {
+      if (window.XRExtras) {
+        resolve();
+      } else {
+        window.addEventListener('xrextrasloaded', () => resolve(), { once: true });
+      }
+    }),
+  ]);
+
+  // Initialize XRExtras
+  initXRExtras();
+
+  // Load image target
+  const response = await fetch(targetSrc);
+  const imageTarget = await response.json();
+
+  if (!window.XR8) {
+    throw new Error('XR8 not loaded');
+  }
+
+  window.XR8.XrController.configure({
+    imageTargetData: [imageTarget],
+    scale: useAbsoluteScale ? 'absolute' : 'responsive', // Sử dụng setting từ user
+  });
+
+  // Setup Three.js scene - XR8 Threejs module sẽ tự tạo
+  let scene: THREE.Scene;
+  let renderer: THREE.WebGLRenderer;
+
+  // Lighting - sẽ add vào scene sau khi XR8 khởi tạo
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  directionalLight.position.set(0, 1, 2);
+  
+  // Performance optimization: Disable shadows (không cần cho AR)
+  directionalLight.castShadow = false;
+
+  // Audio
+  const audio = new Audio(`${import.meta.env.BASE_URL}audio/celebration.mp3`);
+  audio.loop = true;
+  audio.volume = 0.5;
+
+  // Create anchor group - sẽ add vào scene sau
+  const anchorGroup = new THREE.Group();
+  anchorGroup.visible = false;
+
+  // Effects
+  const centerPosition = new THREE.Vector3(0, 0, 0);
+
+  const congratText = new CongratulationText();
+  congratText.create();
+  anchorGroup.add(congratText.getGroup());
+
+  const chibiCharacter = new ChibiCharacter();
+  await chibiCharacter.load(centerPosition);
+  anchorGroup.add(chibiCharacter.getGroup());
+
+  const clock = new THREE.Clock();
+
+  // SLAM Persistence - Giữ AR objects khi mất target
+  const slamPersistence = new SlamPersistence({
+    enabled: enableSlamPersistence, // Sử dụng setting từ user
+  });
+
+  // Camera Pipeline Module
+  let bannerInitialized = false;
+
+  const cameraPipelineModule = {
+    name: 'gradar-camera-pipeline',
+    onStart: () => {
+      // XR8 Threejs module tự động tạo scene và renderer
+      const xrScene = window.XR8!.Threejs.xrScene();
+      scene = xrScene.scene;
+      renderer = xrScene.renderer;
+
+      // Performance optimizations
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.shadowMap.enabled = false;
+      
+      // Set size ngay lập tức để canvas fullscreen
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Add lights và objects vào scene
+      scene.add(ambientLight);
+      scene.add(directionalLight);
+      scene.add(anchorGroup);
+    },
+    onUpdate: () => {
+      const deltaTime = clock.getDelta();
+
+      if (!bannerInitialized) {
+        const headPos = chibiCharacter.getHeadPosition();
+        if (headPos) {
+          congratText.setPosition(headPos);
+          bannerInitialized = true;
+        }
+      }
+
+      congratText.update(deltaTime);
+      chibiCharacter.update(deltaTime);
+      
+      // Update SLAM persistence (xử lý fade out)
+      slamPersistence.update(anchorGroup, deltaTime);
+    },
+    listeners: [
+      {
+        event: 'reality.imagefound',
+        process: ({ detail }: any) => {
+          if (detail.name === imageTarget.name) {
+            anchorGroup.visible = true;
+            // Không tự động play audio nữa, để ARScene điều khiển dựa trên enableARSound
+            
+            // Thông báo SLAM persistence đã tìm lại target
+            slamPersistence.onTargetFound(anchorGroup);
+            
+            onTargetFound();
+          }
+        },
+      },
+      {
+        event: 'reality.imageupdated',
+        process: ({ detail }: any) => {
+          if (detail.name === imageTarget.name) {
+            const { position, rotation, scale } = detail;
+            anchorGroup.position.copy(position);
+            anchorGroup.quaternion.copy(rotation);
+            anchorGroup.scale.set(scale, scale, scale);
+            
+            // Nếu model đang bị ẩn do resetSlam hoặc bị mất nhưng vẫn nhận được sự kiện update,
+            // ta cần hiển thị lại và trigger onTargetFound ngay lập tức để người dùng không phải chờ
+            if (!anchorGroup.visible) {
+              anchorGroup.visible = true;
+              slamPersistence.onTargetFound(anchorGroup);
+              onTargetFound();
+            }
+          }
+        },
+      },
+      {
+        event: 'reality.imagelost',
+        process: ({ detail }: any) => {
+          if (detail.name === imageTarget.name) {
+            // Để SLAM persistence xử lý (giữ visible, không ẩn)
+            slamPersistence.onTargetLost(anchorGroup);
+            
+            // Tạm dừng audio - ARScene sẽ điều khiển
+            
+            onTargetLost();
+          }
+        },
+      },
+    ],
+  };
+
+  // Add pipeline modules with XRExtras
+  const xrExtrasModules = getXRExtrasPipelineModules();
+  
+  window.XR8.addCameraPipelineModules([
+    ...xrExtrasModules,                            // Tất cả XRExtras modules
+    window.XR8.GlTextureRenderer.pipelineModule(), // Render camera feed
+    window.XR8.Threejs.pipelineModule(),           // Three.js integration
+    // REMOVED: XR8.MediaRecorder - dùng custom MediaRecorder thay thế
+    cameraPipelineModule,                          // Custom logic - PHẢI TRƯỚC XrController
+    window.XR8.XrController.pipelineModule(),      // Image tracking controller
+  ]);
+
+  // Start XR8
+  await window.XR8.run({ canvas });
+
+  // Scene và renderer đã được khởi tạo trong onStart
+  return {
+    scene: scene!,
+    renderer: renderer!,
+    anchorGroup,
+    congratText,
+    chibiCharacter,
+    audio,
+    clock,
+    slamPersistence,
+    imageTarget,
+    useAbsoluteScale
+  };
+};
+
+export const cleanupXR8Scene = (setup: XR8SceneSetup) => {
+  setup.audio.pause();
+  setup.audio.src = '';
+  setup.congratText.dispose();
+  setup.chibiCharacter.dispose();
+  setup.slamPersistence.reset();
+
+  if (window.XR8) {
+    try {
+      window.XR8.stop();
+    } catch {
+      // ignore
+    }
+  }
+};
+
+export const resetXR8Scene = (setup: XR8SceneSetup) => {
+  // Reset SLAM persistence và ẩn AR
+  setup.slamPersistence.reset(setup.anchorGroup);
+  
+  // Dừng audio
+  setup.audio.pause();
+  setup.audio.currentTime = 0;
+  
+  // Reset animations
+  setup.chibiCharacter.resetAnimation();
+  setup.congratText.resetAnimation();
+  
+  // Tạm thời vô hiệu hóa image tracking sau đó bật lại ngay lập tức
+  // Điều này buộc XR8 phải loại bỏ trạng thái tracking cũ và dò lại hình ảnh từ đầu
+  if (window.XR8 && window.XR8.XrController) {
+    const xr8 = window.XR8;
+    // 1. Clear targets
+    xr8.XrController.configure({ imageTargetData: [] });
+    
+    // 2. Re-add targets after a tiny delay to ensure proper state reset
+    setTimeout(() => {
+      if (window.XR8) {
+        window.XR8.XrController.configure({
+          imageTargetData: [setup.imageTarget],
+          scale: setup.useAbsoluteScale ? 'absolute' : 'responsive',
+        });
+        // Optionally call recenter to reset SLAM physics origin as well
+        if (typeof (window.XR8.XrController as any).recenter === 'function') {
+          (window.XR8.XrController as any).recenter();
+        }
+      }
+    }, 50);
+  }
+};
+
+
+================================================
+FILE: src/utils/xrExtrasConfig.ts
+================================================
+/**
+ * Cấu hình và khởi tạo XRExtras modules
+ */
+
+export const initXRExtras = () => {
+  if (!window.XRExtras) {
+    console.warn('XRExtras chưa load');
+    return;
+  }
+
+  if (import.meta.env.DEV) {
+    console.log('🎯 XRExtras loaded:', Object.keys(window.XRExtras));
+  }
+
+  // QUAN TRỌNG: Set app loaded provider TRƯỚC KHI tạo pipeline modules
+  // Điều này đảm bảo loading screen sẽ tự động tắt sau khi camera ready
+  if (window.XRExtras.Loading) {
+    window.XRExtras.Loading.setAppLoadedProvider(() => true);
+  }
+
+  // Configure MediaRecorder
+  configureMediaRecorder();
+  
+  // Configure PWA Installer
+  configurePwaInstaller();
+};
+
+/**
+ * Cấu hình PWA Installer
+ */
+export const configurePwaInstaller = () => {
+  if (!window.XRExtras?.PwaInstaller) return;
+
+  window.XRExtras.PwaInstaller.configure({
+    promptConfig: {
+      minNumVisits: 2,                    // Hiện prompt sau 2 lần visit
+      delayAfterDismissalMillis: 86400000 // 1 ngày
+    },
+    displayConfig: {
+      name: 'GradAR',
+      iconSrc: '/logotvu.png',
+      installTitle: 'Cài đặt GradAR',
+      installSubtitle: 'để truy cập nhanh hơn',
+      installButtonText: 'Cài đặt',
+      iosInstallText: 'Nhấn $ACTION_ICON và chọn "Thêm vào Màn hình chính"'
+    }
+  });
+};
+
+/**
+ * Cấu hình MediaRecorder với settings mặc định
+ */
+export const configureMediaRecorder = () => {
+  // Không config gì, dùng mặc định của XR8
+};
+
+/**
+ * Danh sách các pipeline modules được sử dụng
+ * Thứ tự rất quan trọng!
+ */
+export const getXRExtrasPipelineModules = () => {
+  if (!window.XRExtras) return [];
+
+  return [
+    // 1. Browser compatibility
+    window.XRExtras.AlmostThere.pipelineModule(),
+    
+    // 2. Loading với app loaded provider
+    window.XRExtras.Loading.pipelineModule(),
+    
+    // 3. Error handling
+    window.XRExtras.RuntimeError.pipelineModule(),
+    
+    // 4. Performance optimization (TẮT FullWindowCanvas vì có thể ảnh hưởng 3D transform)
+    // window.XRExtras.FullWindowCanvas.pipelineModule(),
+    window.XRExtras.PauseOnHidden.pipelineModule(),
+    
+    // 5. PWA
+    window.XRExtras.PwaInstaller.pipelineModule(),
+    
+    // NOTE: MediaRecorder KHÔNG có pipelineModule() - nó hoạt động standalone
+    // Chỉ cần configure và gọi startRecording()/stopRecording() trực tiếp
+  ];
+};
+
+/**
+ * Tạo tap-to-place gesture handler (nếu cần)
+ */
+export const createTapToPlaceHandler = (onTap: (position: { x: number; y: number }) => void) => {
+  if (!window.XRExtras?.ThreeExtras) return null;
+
+  // XRExtras.ThreeExtras có gesture utilities
+  return {
+    name: 'tap-handler',
+    onTouchStart: (event: TouchEvent) => {
+      if (event.touches.length === 1) {
+        const touch = event.touches[0];
+        onTap({ x: touch.clientX, y: touch.clientY });
+      }
+    },
+  };
+};
+
+/**
+ * Sử dụng Lifecycle để lắng nghe attach/detach events
+ */
+export const useLifecycleListener = (callback: (attachState: any) => void) => {
+  if (!window.XRExtras?.Lifecycle) return;
+
+  window.XRExtras.Lifecycle.attachListener.add(callback);
+  
+  // Return cleanup function
+  return () => {
+    window.XRExtras.Lifecycle.attachListener.delete(callback);
+  };
+};
+
+
+================================================
+FILE: src/utils/xrExtrasEvents.ts
+================================================
+/**
+ * XRExtras Custom Events
+ * Events được dispatch trực tiếp từ XRExtras source code
+ */
+
+// Event types
+export const XRExtrasEvents = {
+  // Loading events
+  LOADING_SHOWN: 'xrextras-loading-shown',
+  LOADING_HIDDEN: 'xrextras-loading-hidden',
+  LOADING_CAMERA_REQUEST: 'xrextras-loading-camera-request',
+  
+  // AlmostThere events
+  ALMOST_THERE_SHOWN: 'xrextras-almost-there-shown',
+  ALMOST_THERE_HIDDEN: 'xrextras-almost-there-hidden',
+} as const;
+
+export type XRExtrasEventType = typeof XRExtrasEvents[keyof typeof XRExtrasEvents];
+
+/**
+ * Listen to XRExtras event
+ * Returns cleanup function
+ */
+export const addXRExtrasEventListener = (
+  eventType: XRExtrasEventType,
+  callback: (event: CustomEvent) => void
+) => {
+  const handler = callback as EventListener;
+  window.addEventListener(eventType, handler);
+  return () => window.removeEventListener(eventType, handler);
+};
+
+
+================================================
+FILE: src/vite-env.d.ts
+================================================
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly BASE_URL: string;
+  // Add more env variables here if needed
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+

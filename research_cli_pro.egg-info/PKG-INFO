@@ -1,0 +1,382 @@
+Metadata-Version: 2.4
+Name: research-cli-pro
+Version: 2.0.0
+Summary: Professional YouTube search and analysis CLI tool
+Home-page: https://github.com/youtube-cli/youtube-cli-pro
+Author: YouTube CLI Team
+Author-email: team@youtube-cli.com
+Project-URL: Bug Reports, https://github.com/youtube-cli/youtube-cli-pro/issues
+Project-URL: Source, https://github.com/youtube-cli/youtube-cli-pro
+Project-URL: Documentation, https://youtube-cli-pro.readthedocs.io/
+Keywords: youtube,cli,video,search,analysis,trending,api
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Multimedia :: Video
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: yt-dlp>=2024.12.13
+Requires-Dist: click>=8.0.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: notebooklm-py>=0.3.3
+Requires-Dist: playwright>=1.40.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: project-url
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# YouTube CLI Pro - Professional YouTube Search & Analysis Tool
+
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/youtube-cli/youtube-cli-pro)
+[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+A professional-grade command-line tool for YouTube video search, analysis, and data extraction. Built with enterprise-level architecture for scalability and maintainability.
+
+## 🚀 Features
+
+### Core Capabilities
+- **Advanced Search**: Multi-criteria search with intelligent filtering
+- **Trending Detection**: Find viral and high-engagement videos
+- **Data Export**: Multiple formats (JSON, CSV, URLs)
+- **Video Analysis**: Detailed metadata extraction
+- **Subtitle Download**: Multi-language caption support
+- **NotebookLM Integration**: Seamless workflow integration
+
+### Professional Features
+- **Enterprise Architecture**: Modular, scalable codebase
+- **Advanced Filtering**: View count, duration, date, channel filters
+- **Smart Sorting**: Multiple sorting algorithms including engagement ranking
+- **Batch Processing**: Handle large datasets efficiently
+- **Error Handling**: Robust error recovery and logging
+- **Extensible Design**: Easy to add new features and integrations
+
+## 📦 Installation
+
+### Quick Install
+```bash
+pip install yt-dlp click requests
+```
+
+### Development Install
+```bash
+git clone https://github.com/youtube-cli/youtube-cli-pro.git
+cd youtube-cli-pro
+pip install -e .
+```
+
+### Prerequisites
+- Python 3.8+
+- yt-dlp (latest version recommended)
+- Internet connection
+
+## 🎯 Quick Start
+
+### Basic Search
+```bash
+python -m youtube_cli.main search "AI tools for business" -n 5
+```
+
+### Find Trending Videos
+```bash
+python -m youtube_cli.main trending "digital marketing" --min-views 100000
+```
+
+### Export URLs for NotebookLM
+```bash
+python -m youtube_cli.main export "AI trends 2026" --format urls -o ai_videos.txt
+```
+
+### Get Video Details
+```bash
+python -m youtube_cli.main info "https://youtube.com/watch?v=VIDEO_ID"
+```
+
+## 📋 Command Reference
+
+### Search Command
+```bash
+python -m youtube_cli.main search "query" [OPTIONS]
+
+Options:
+  -n, --max-results INTEGER     Number of results (default: 10)
+  -s, --sort-by [relevance|views|date|duration|title|channel]
+  -m, --min-views INTEGER       Minimum view count filter
+  --max-views INTEGER           Maximum view count filter
+  --min-duration INTEGER        Minimum duration in seconds
+  --max-duration INTEGER        Maximum duration in seconds
+  --days-ago INTEGER            Videos from last N days
+  --channels TEXT               Filter by channel names (comma-separated)
+  --json                        Output as JSON
+  --verbose                     Detailed output
+```
+
+### Trending Command
+```bash
+python -m youtube_cli.main trending "query" [OPTIONS]
+
+Options:
+  -m, --min-views INTEGER       Minimum views for trending (default: 100K)
+  -n, --max-results INTEGER     Number of results (default: 10)
+  --days-ago INTEGER            Consider videos from last N days (default: 365)
+  --json                        Output as JSON
+```
+
+### Export Command
+```bash
+python -m youtube_cli.main export "query" [OPTIONS]
+
+Options:
+  --format [urls|json|csv]      Export format (default: urls)
+  -o, --output TEXT             Output filename
+  -n, --max-results INTEGER     Number of videos (default: 10)
+  -s, --sort-by [views|date|duration|relevance]
+  -m, --min-views INTEGER       Minimum view count (default: 10K)
+```
+
+### Info Command
+```bash
+python -m youtube_cli.main info "VIDEO_URL" [OPTIONS]
+
+Options:
+  --json                        Output as JSON
+```
+
+## 🔧 Advanced Usage
+
+### Complex Filtering
+```bash
+# Find recent high-quality tutorials
+python -m youtube_cli.main search "Python tutorial" \
+  --min-views 50000 \
+  --min-duration 600 \
+  --days-ago 90 \
+  --sort-by views \
+  -n 10
+```
+
+### Batch Export for Research
+```bash
+# Export trending AI videos for analysis
+python -m youtube_cli.main export "artificial intelligence 2026" \
+  --format csv \
+  --min-views 100000 \
+  --sort-by views \
+  -o ai_research.csv
+```
+
+### NotebookLM Integration Workflow
+```bash
+# 1. Find and export video URLs
+python -m youtube_cli.main export "digital marketing AI" \
+  --format urls \
+  --min-views 50000 \
+  -n 5 \
+  -o marketing_videos.txt
+
+# 2. Create NotebookLM notebook
+notebooklm create "AI Marketing Research 2026"
+
+# 3. Add videos as sources
+while read url; do notebooklm source add "$url"; done < marketing_videos.txt
+
+# 4. Analyze content
+notebooklm ask "What are the main AI marketing trends discussed?"
+```
+
+## 🏗️ Architecture
+
+### Project Structure
+```
+youtube_cli/
+├── __init__.py              # Package initialization
+├── main.py                  # CLI entry point
+├── core/                    # Core functionality
+│   ├── __init__.py
+│   ├── youtube_client.py    # YouTube API client
+│   ├── filters.py           # Video filtering logic
+│   └── sorters.py           # Sorting algorithms
+├── commands/                # CLI commands
+│   ├── __init__.py
+│   ├── search.py           # Search command
+│   ├── trending.py         # Trending command
+│   └── export.py           # Export command
+└── utils/                   # Utilities
+    ├── __init__.py
+    ├── output.py           # Output formatting
+    └── config.py           # Configuration management
+```
+
+### Key Components
+
+#### YouTubeClient
+- Core YouTube interaction logic
+- Video search and metadata extraction
+- Subtitle downloading capabilities
+- Error handling and retry logic
+
+#### VideoFilter
+- Advanced filtering by view count, duration, date
+- Channel-based filtering
+- Trending video detection
+- Duplicate removal
+
+#### VideoSorter
+- Multiple sorting algorithms
+- Engagement score calculation
+- Custom ranking systems
+
+## 🔌 Integration Examples
+
+### Python API Usage
+```python
+from youtube_cli.core import YouTubeClient, VideoFilter, VideoSorter
+
+# Initialize client
+client = YouTubeClient()
+
+# Search videos
+videos = client.search_videos("AI tools", max_results=20)
+
+# Apply filters
+filtered = VideoFilter.by_view_count(videos, min_views=100000)
+trending = VideoFilter.trending_videos(filtered, recent_days=30)
+
+# Sort by engagement
+sorted_videos = VideoSorter.rank_by_engagement(trending)
+
+# Get top 5
+top_videos = sorted_videos[:5]
+```
+
+### Custom Workflow Integration
+```python
+import json
+from youtube_cli.core import YouTubeClient
+from youtube_cli.utils.output import format_json_output
+
+def research_pipeline(topic, min_views=50000):
+    """Custom research pipeline"""
+    client = YouTubeClient()
+    
+    # Search and filter
+    videos = client.search_videos(f"{topic} 2026", max_results=50)
+    high_quality = VideoFilter.by_view_count(videos, min_views)
+    recent = VideoFilter.by_upload_date(high_quality, days_ago=180)
+    
+    # Export for analysis
+    return format_json_output(recent)
+```
+
+## 📊 Output Formats
+
+### JSON Output
+```json
+{
+  "title": "AI Tools That Will Change Business in 2026",
+  "uploader": "Tech Insights",
+  "view_count": 1250000,
+  "duration": 1820,
+  "upload_date": "20241215",
+  "upload_date_formatted": "15/12/2024",
+  "url": "https://youtube.com/watch?v=...",
+  "description": "Comprehensive guide to AI tools...",
+  "tags": ["AI", "business", "automation"],
+  "subtitles": ["en", "es", "fr"]
+}
+```
+
+### CSV Export
+```csv
+title,uploader,view_count,duration,upload_date_formatted,url
+"AI Business Tools 2026","TechChannel",1500000,1200,"15/12/2024","https://youtube.com/..."
+```
+
+## 🚨 Error Handling
+
+The tool includes comprehensive error handling:
+
+- **Network Issues**: Automatic retry with exponential backoff
+- **API Limits**: Rate limiting detection and graceful degradation
+- **Invalid URLs**: Clear error messages and suggestions
+- **Missing Data**: Fallback values and warnings
+- **File Operations**: Permission and disk space checks
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Import Errors**
+```bash
+pip install --upgrade yt-dlp click requests
+```
+
+**API Extraction Failures**
+```bash
+pip install --upgrade yt-dlp
+```
+
+**No Results Found**
+- Try broader search terms
+- Reduce filtering criteria
+- Check internet connection
+
+**Performance Issues**
+- Reduce `max_results` for large searches
+- Use specific filters to narrow results
+- Enable verbose mode for debugging
+
+### Debug Mode
+```bash
+python -m youtube_cli.main search "query" --verbose
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+```bash
+git clone https://github.com/youtube-cli/youtube-cli-pro.git
+cd youtube-cli-pro
+pip install -e ".[dev]"
+pytest tests/
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Powerful YouTube data extraction
+- [Click](https://click.palletsprojects.com/) - Command line interface framework
+- [NotebookLM](https://notebooklm.google.com/) - AI-powered research platform
+
+## 📞 Support
+
+- 📧 Email: support@youtube-cli-pro.com
+- 🐛 Issues: [GitHub Issues](https://github.com/youtube-cli/youtube-cli-pro/issues)
+- 📖 Documentation: [Read the Docs](https://youtube-cli-pro.readthedocs.io/)
+- 💬 Discussions: [GitHub Discussions](https://github.com/youtube-cli/youtube-cli-pro/discussions)
+
+---
+
+**Made with ❤️ for researchers, marketers, and content creators**#   N o t e b o o k L M A u t o 
+ 
+ 

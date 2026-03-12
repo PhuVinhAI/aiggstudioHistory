@@ -1,3 +1,0 @@
-[console_scripts]
-research-cli = research_cli.main:cli
-ytcli = research_cli.main:cli

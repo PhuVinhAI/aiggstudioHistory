@@ -56,9 +56,10 @@ After saving ALL modified files, you MUST use your terminal tools to run the rel
 
 <directive name="verification_failure_handling" priority="high">
 If a verification command (lint, build, typecheck) fails:
-1. DO NOT silently ignore it.
-2. If it is a trivial typo caused by your patch, fix it immediately and re-run the check.
-3. If it is a complex architectural error, STOP. Extract the exact error logs from the terminal and output them so the Architect AI can analyze them.
+1. DO NOT silently ignore it. Analyze the error output.
+2. CRITICAL: If the errors are PRE-EXISTING and located in files you DID NOT touch, you MUST explicitly state this in your output, treat the verification as SUCCESS for your specific changes, and PROCEED to Phase 3 (Git Commit).
+3. If it is a trivial typo caused by your patch, fix it immediately and re-run the check.
+4. If it is a complex architectural error caused by your changes, STOP. Extract the exact error logs from the terminal and output them so the Architect AI can analyze them.
 </directive>
 
 <directive name="git_auto_commit" priority="high">

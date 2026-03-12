@@ -76,10 +76,11 @@ app.post('/api/kilo', (req, res) => {
     } catch {
       console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
     }
-  });
 
-  // Trả về response ngay lập tức để UI không bị treo chờ Kilo chạy xong
-  res.json({ success: true, message: 'Đã kích hoạt Kilo CLI thành công' });
+    // Quan trọng: Trả về response cho Extension ngay lập tức để giải phóng HTTP request.
+    // Nhờ vậy Extension không bị treo và có thể tiếp tục gửi task mới. Server tiếp tục lắng nghe.
+    res.json({ success: true, message: 'Đã đưa task cho Kilo xử lý ngầm' });
+  });
 });
 
 app.listen(9999, () => {

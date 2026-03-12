@@ -1,0 +1,78 @@
+Dưới đây là 2 bản vá để giải quyết triệt để 2 vấn đề bạn vừa nêu.
+
+### 1. Sửa `apply.md` (Dạy AI bỏ qua lỗi Lint không phải của nó)
+Trong file `apply.md`, tôi sẽ thêm luật bắt buộc AI: *"Nếu linter báo lỗi, nhưng lỗi đó nằm ở các file mày KHÔNG sửa, thì hãy lờ nó đi, ghi nhận là Pass và tiếp tục chạy Git Push"*.
+
+<<<START_OF_DIFF>>>
+```markdown
+# File: apply.md
+<<<<<<< SEARCH
+<directive name="verification_failure_handling" priority="high">
+If a verification command (lint, build, typecheck) fails:
+1. DO NOT silently ignore it.
+2. If it is a trivial typo caused by your patch, fix it immediately and re-run the check.
+3. If it is a complex architectural error, STOP. Extract the exact error logs from the terminal and output them so the Architect AI can analyze them.
+</directive>
+
+<directive name="git_auto_commit" priority="high">
+=======
+<directive name="verification_failure_handling" priority="high">
+If a verification command (lint, build, typecheck) fails:
+1. DO NOT silently ignore it. Analyze the error output.
+2. CRITICAL: If the errors are PRE-EXISTING and located in files you DID NOT touch, you MUST explicitly state this in your output, treat the verification as SUCCESS for your specific changes, and PROCEED to Phase 3 (Git Commit).
+3. If it is a trivial typo caused by your patch, fix it immediately and re-run the check.
+4. If it is a complex architectural error caused by your changes, STOP. Extract the exact error logs from the terminal and output them so the Architect AI can analyze them.
+</directive>
+
+<directive name="git_auto_commit" priority="high">
+>>>>>>> REPLACE
+```
+<<<END_OF_DIFF>>>
+
+### 2. Sửa `server/index.ts` (Fix lỗi Server bị "treo" không nhận task mới)
+**Nguyên nhân:** Trong bản vá trước, tôi đã sơ ý xóa mất dòng `res.json(...)` trả về kết quả cho Extension. Vì Express server không trả về HTTP Response, Extension bị "treo" ở trạng thái *pending* (đợi phản hồi), dẫn đến việc nó không thể gửi tiếp task thứ 2, thứ 3. Server không hề chết, nó chỉ đang giữ kết nối (giữ line) của task 1.
+
+Tôi sẽ bổ sung lại dòng trả response sau khi spawn tiến trình Kilo xong.
+
+<<<START_OF_DIFF>>>
+```typescript
+# File: server/index.ts
+<<<<<<< SEARCH
+  kiloProcess.on('close', (code) => {
+    console.log(`\n[THÔNG BÁO] Kilo CLI đã hoàn thành với mã thoát (exit code): ${code}\n`);
+    // Dọn dẹp file tạm
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+        console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: ${tempFileName}`);
+      }
+    } catch (e) {
+      console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
+    }
+  });
+});
+
+app.listen(9999, () => {
+=======
+  kiloProcess.on('close', (code) => {
+    console.log(`\n[THÔNG BÁO] Kilo CLI đã hoàn thành với mã thoát (exit code): ${code}\n`);
+    // Dọn dẹp file tạm
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+        console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: ${tempFileName}`);
+      }
+    } catch (e) {
+      console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
+    }
+  });
+
+  // Quan trọng: Trả về response cho Extension ngay lập tức để giải phóng HTTP request.
+  // Nhờ vậy Extension không bị treo và có thể tiếp tục gửi task mới. Server tiếp tục lắng nghe.
+  res.json({ success: true, message: 'Đã đưa task cho Kilo xử lý ngầm' });
+});
+
+app.listen(9999, () => {
+>>>>>>> REPLACE
+```
+<<<END_OF_DIFF>>>

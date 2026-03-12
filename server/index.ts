@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import os from 'os';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 app.use(cors());
@@ -22,10 +24,38 @@ app.post('/api/kilo', (req, res) => {
   // Tránh lỗi multiline prompt bị cắt ngang trên terminal bằng cách tắt shell.
   // Trên Windows, khi không dùng shell, ta phải gọi đích danh file .cmd
   const isWindows = os.platform() === 'win32';
-  const command = isWindows ? 'kilo.cmd' : 'kilo';
+  let command = isWindows ? 'kilo.cmd' : 'kilo';
+  let args = ['run', '--auto', prompt, '--print-logs'];
+
+  // Workaround cho lỗi `EINVAL` trên Node 18+ khi truyền chuỗi có newline vào file .cmd:
+  // Chúng ta tìm file .js gốc của Kilo để chạy trực tiếp qua `node` thay vì gọi qua .cmd wrapper.
+  if (isWindows) {
+    try {
+      const kiloCmdPath = execSync('where kilo', { encoding: 'utf8' }).split('\n')[0].trim();
+      if (kiloCmdPath && kiloCmdPath.toLowerCase().endsWith('.cmd')) {
+        const content = fs.readFileSync(kiloCmdPath, 'utf8');
+        // Trích xuất đường dẫn file thực thi từ file .cmd do npm/yarn/pnpm sinh ra
+        const match = content.match(/"([^"]+\.(?:js|cjs|mjs))"/i);
+        if (match) {
+          let jsPath = match[1];
+          // Replace biến môi trường nội bộ của windows cmd
+          jsPath = jsPath.replace(/%~dp0/gi, path.dirname(kiloCmdPath) + path.sep);
+          jsPath = jsPath.replace(/%dp0%/gi, path.dirname(kiloCmdPath) + path.sep);
+          jsPath = path.resolve(jsPath);
+          
+          if (fs.existsSync(jsPath)) {
+            command = 'node';
+            args = [jsPath, 'run', '--auto', prompt, '--print-logs'];
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('\n[CẢNH BÁO] Không thể phân tích kilo.cmd, chuyển về mặc định:', err);
+    }
+  }
 
   // Chạy lệnh kilo bằng spawn để log thẳng ra terminal hiện tại
-  const kiloProcess = spawn(command, ['run', '--auto', prompt, '--print-logs'], {
+  const kiloProcess = spawn(command, args, {
     cwd: process.cwd(), // Chạy ngay tại thư mục gốc của project
     stdio: 'inherit',   // Kế thừa luồng I/O để in thẳng log ra console
     shell: false        // Quan trọng: Tắt shell để Node.js tự escape an toàn chuỗi nhiều dòng

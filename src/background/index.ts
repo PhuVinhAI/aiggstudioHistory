@@ -1,5 +1,12 @@
+import { extractPromptIdFromUrl, convertPromptDataToChatTurns } from '../utils/api';
+
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+  if (request.action === 'executeKiloWorkflow') {
+    executeAutoKiloWorkflow(request.url).catch(console.error);
+    return true;
+  }
+
   if (request.action === 'fetchPromptData') {
     fetchPromptDataFromDrive(request.promptId, request.token)
       .then(data => sendResponse({ success: true, data }))
@@ -106,3 +113,47 @@ async function downloadDriveFile(fileId: string, token?: string): Promise<{ data
 }
 
 console.log('AI Studio Chat Archiver: Background service worker started');
+
+async function executeAutoKiloWorkflow(url: string) {
+  const promptId = extractPromptIdFromUrl(url);
+  if (!promptId) return;
+
+  const result = await chrome.storage.local.get(['driveToken']) as { driveToken?: string };
+  const driveToken = result.driveToken;
+  if (!driveToken) return;
+
+  try {
+    const promptData = await fetchPromptDataFromDrive(promptId, driveToken);
+    if (!promptData) return;
+
+    const chatTurns = convertPromptDataToChatTurns(promptData);
+    if (chatTurns.length === 0) return;
+
+    const lastTurn = chatTurns[chatTurns.length - 1];
+    let prompt = lastTurn.content;
+    if (!prompt) return;
+
+    const diffRegex = /<<<START OF DIFF>>>([\s\S]*?)<<<END OF DIFF>>>/g;
+    const matches = [...prompt.matchAll(diffRegex)];
+    if (matches.length > 0) {
+      prompt = matches.map(m => m[1].trim()).join('\n\n');
+    }
+
+    const response = await fetch('http://localhost:9999/api/kilo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (response.ok) {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('vite.svg'),
+        title: 'Auto-Kilo Hoạt Động',
+        message: 'Đã tự động bắt được response mới và gửi lệnh cho Kilo CLI!'
+      });
+    }
+  } catch (error) {
+    console.error('Lỗi khi auto-execute Kilo:', error);
+  }
+}

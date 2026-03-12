@@ -3,9 +3,10 @@
   "name": "AI Studio Chat Archiver",
   "version": "1.0.0",
   "description": "Export Google AI Studio chat history with attachments",
-  "permissions": [
+"permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "notifications"
   ],
   "host_permissions": [
     "https://aistudio.google.com/*",

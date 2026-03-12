@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 export default function Popup() {
   const [driveToken, setDriveToken] = useState('');
@@ -14,6 +15,7 @@ export default function Popup() {
   const [saved, setSaved] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
   const [isCallingKilo, setIsCallingKilo] = useState(false);
+  const [autoWatch, setAutoWatch] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -39,8 +41,9 @@ export default function Popup() {
   }, []);
 
   const loadData = async () => {
-    const result = await chrome.storage.local.get(['driveToken']);
+    const result = await chrome.storage.local.get(['driveToken', 'autoWatchKilo']);
     setDriveToken((result.driveToken as string) || '');
+    setAutoWatch(!!result.autoWatchKilo);
   };
 
   const getCurrentTabUrl = async () => {
@@ -211,7 +214,7 @@ export default function Popup() {
             ) : (
               <Cpu className="h-5 w-5 mr-2" />
             )}
-            {isCallingKilo ? 'Đang gọi Kilo...' : 'Gọi Kilo làm việc'}
+            {isCallingKilo ? 'Đang gọi Kilo...' : 'Gọi Kilo thủ công'}
           </Button>
 
           {/* Open Editor Button */}
@@ -225,6 +228,23 @@ export default function Popup() {
             <ExternalLink className="h-5 w-5 mr-2" />
             Mở Editor để Export
           </Button>
+          
+          {/* Auto Watch Kilo Feature */}
+          <div className="flex items-center justify-between p-3 mt-2 bg-muted/50 rounded-lg border">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Auto-Watch Kilo</Label>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Tự động gửi Kilo chạy ngầm mỗi khi AI vừa trả lời xong.
+              </p>
+            </div>
+            <Switch
+              checked={autoWatch}
+              onCheckedChange={async (checked) => {
+                setAutoWatch(checked);
+                await chrome.storage.local.set({ autoWatchKilo: checked });
+              }}
+            />
+          </div>
         </div>
       </div>
 

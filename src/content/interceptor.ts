@@ -29,8 +29,8 @@ window.fetch = async function(...args) {
 
   const response = await originalFetch.apply(this, args);
 
-  // Phát hiện AI đã update prompt xong (lưu xong lên Drive)
-  if (typeof url === 'string' && url.includes('UpdatePrompt') && response.ok) {
+  // Phát hiện AI đã lưu prompt xong lên Drive (Update chat cũ hoặc Create chat mới)
+  if (typeof url === 'string' && (url.includes('UpdatePrompt') || url.includes('CreatePrompt')) && response.ok) {
     window.postMessage({ type: 'AI_STATE_CHANGED', state: 'updated' }, '*');
   }
   
@@ -55,8 +55,8 @@ XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...r
   }
 
   this.addEventListener('load', function() {
-    // Phát hiện update xong
-    if (urlString.includes('UpdatePrompt') && this.status === 200) {
+    // Phát hiện update/create xong
+    if ((urlString.includes('UpdatePrompt') || urlString.includes('CreatePrompt')) && this.status === 200) {
       window.postMessage({ type: 'AI_STATE_CHANGED', state: 'updated' }, '*');
     }
   });

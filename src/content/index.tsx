@@ -30,7 +30,7 @@ window.addEventListener('message', (event) => {
     } else if (event.data.state === 'updated') {
       if (isGenerating) {
         isGenerating = false;
-        console.log('✅ [Auto-watch Debug] Network Event: Đã bắt được UpdatePrompt. Dữ liệu đã lưu lên Drive.');
+        console.log('✅ [Auto-watch Debug] Network Event: Đã bắt được Update/CreatePrompt. Dữ liệu đã lưu lên Drive.');
         
         // Gọi thẳng sau 1 giây mà không cần đợi 6 giây như trước (do đã update xong)
         setTimeout(() => {

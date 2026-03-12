@@ -23,13 +23,17 @@ app.post('/api/kilo', (req, res) => {
   const isWindows = os.platform() === 'win32';
   const command = isWindows ? 'kilo.cmd' : 'kilo';
 
-  // Lưu prompt (chứa code diff nhiều dòng) vào file tạm
-  const tempFileName = `kilo_task_${Date.now()}.txt`;
-  const tempFilePath = path.join(process.cwd(), tempFileName);
+  // Lưu prompt (chứa code diff nhiều dòng) vào thư mục ẩn .kilo-tasks
+  const tasksDir = path.join(process.cwd(), '.kilo-tasks');
+  const tempFileName = `task_${Date.now()}.txt`;
+  const tempFilePath = path.join(tasksDir, tempFileName);
 
   try {
+    if (!fs.existsSync(tasksDir)) {
+      fs.mkdirSync(tasksDir, { recursive: true });
+    }
     fs.writeFileSync(tempFilePath, prompt, 'utf8');
-    console.log(`[THÔNG BÁO] Đã lưu nội dung task vào file tạm: ${tempFileName}`);
+    console.log(`[THÔNG BÁO] Đã lưu nội dung task vào file: .kilo-tasks/${tempFileName}`);
   } catch (err) {
     console.error('Lỗi tạo file tạm:', err);
     return res.status(500).json({ error: 'Không thể tạo file tạm cho Kilo' });
@@ -73,10 +77,10 @@ app.post('/api/kilo', (req, res) => {
     try {
       if (fs.existsSync(tempFilePath)) {
         fs.unlinkSync(tempFilePath);
-        console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: ${tempFileName}`);
+        console.log(`[THÔNG BÁO] Đã dọn dẹp file tạm: .kilo-tasks/${tempFileName}`);
       }
     } catch (e) {
-      console.warn(`[CẢNH BÁO] Không thể xóa file tạm: ${tempFileName}`);
+      console.warn(`[CẢNH BÁO] Không thể xóa file tạm: .kilo-tasks/${tempFileName}`);
     }
 
     // Đợi Kilo xử lý xong mới trả HTTP Response về cho Extension

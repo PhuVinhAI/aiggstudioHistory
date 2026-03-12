@@ -39,21 +39,21 @@ const observer = new MutationObserver(() => {
 
   const html = runButton.innerHTML;
   
-  // Kiểm tra trạng thái đang chạy hay đang chờ
+  // Logic kiểm tra mới: Chỉ cần tìm xem có chữ Stop hoặc icon progress_activity (đang xoay) không
   const isRunning = html.includes('progress_activity') || html.includes('Stop');
-  const isIdle = html.includes('keyboard_return') || html.includes('Run');
 
+  // Chỉ in log và xử lý khi có sự THAY ĐỔI trạng thái (từ Idle -> Run hoặc Run -> Idle)
   if (isRunning && !isGenerating) {
-    // Chuyển sang trạng thái đang sinh code
     isGenerating = true;
-    console.log('[AI Studio Archiver] Kilo Auto-watch: AI is generating...');
-  } else if (isIdle && isGenerating) {
-    // Chuyển từ đang sinh sang hoàn thành
+    console.log('🔄 [Auto-watch Debug] Trạng thái: ĐANG CHẠY (AI is generating...)');
+  } 
+  else if (!isRunning && isGenerating) {
     isGenerating = false;
-    console.log('[AI Studio Archiver] Kilo Auto-watch: AI finished. Triggering Kilo in 3 seconds...');
+    console.log('✅ [Auto-watch Debug] Trạng thái: HOÀN THÀNH. Gọi Kilo sau 3 giây...');
     
     // Đợi 3 giây để đảm bảo Google Drive đã kịp lưu lượt chat mới nhất
     setTimeout(() => {
+      console.log('🚀 [Auto-watch Debug] Bắn tín hiệu executeKiloWorkflow tới Background!');
       chrome.runtime.sendMessage({ 
         action: 'executeKiloWorkflow', 
         url: window.location.href 

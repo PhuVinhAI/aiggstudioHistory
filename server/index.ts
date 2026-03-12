@@ -46,18 +46,19 @@ app.post('/api/kilo', (req, res) => {
     // 1. Tránh lỗi EINVAL do bảo mật của Node.js với file .cmd
     // 2. Tránh cảnh báo DeprecationWarning khi dùng shell: true
     // 3. Giữ nguyên vẹn khoảng trắng trong shortPrompt bằng dấu ngoặc kép
-    const commandString = `kilo run --auto "${shortPrompt}" --print-logs`;
+    // Đã xóa --print-logs để Kilo chỉ in ra text của AI và file thay đổi, không in log hệ thống
+    const commandString = `kilo run --auto "${shortPrompt}"`;
     kiloProcess = spawn('cmd.exe', ['/c', commandString], {
       cwd: process.cwd(),
       stdio: 'inherit',
       shell: false
     });
   } else {
-    const args = ['run', '--auto', shortPrompt, '--print-logs'];
+    const args = ['run', '--auto', shortPrompt];
     kiloProcess = spawn(command, args, {
       cwd: process.cwd(),
       stdio: 'inherit',
-      shell: false 
+      shell: false
     });
   }
 

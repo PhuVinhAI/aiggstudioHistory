@@ -4,28 +4,26 @@ import { extractPromptIdFromUrl, convertPromptDataToChatTurns } from '../utils/a
 const ICON_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAxElEQVR4nO3VQWpCQRSG4W/oBlp0FV0h1xHcg5uRuBE30E2IuI7uIt0iXTToIjhwwV+YkPBT34Vzwg+XGZ6Z18MwDEe0cIUTTnjBByZou4g7rOGG5/KdcMQh0h7e8VnK11iU8jFqA1zjP3zjPXXMFT4x6yJu8IEZrnGHGzS7iHss8YgrXOE2/Vlww7yLeMAWd+G1Rz1g+y/wI14yE10cK2Y4x6tq7B1H2FfX2FeX2FeX2FeX2FeX2FeX2JfvAafKx1j1Xb3fX+YfB3hAEX0aFxcAAAAASUVORK5CYII=';
 
 async function showNotification(title: string, message: string, type: 'info' | 'error' | 'success' = 'info', tabId?: number) {
-  const payload = { action: 'SHOW_NOTIFICATION', title, message, type };
-
-  if (tabId) {
-    chrome.tabs.sendMessage(tabId, payload).catch(() => fallbackNotification(title, message));
-  } else {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0 && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, payload).catch(() => fallbackNotification(title, message));
-      } else {
-        fallbackNotification(title, message);
-      }
-    });
-  }
-}
-
-function fallbackNotification(title: string, message: string) {
+  // 1. Hiển thị thông báo hệ thống (Across entire window/OS)
   chrome.notifications.create({
     type: 'basic',
     iconUrl: ICON_BASE64,
-    title: title,
-    message: message
+    title: `${type.toUpperCase()}: ${title}`,
+    message: message,
+    priority: 2
   });
+
+  // 2. Vẫn gửi xuống Content Script để hiển thị Toast trong trang (nếu muốn)
+  const payload = { action: 'SHOW_NOTIFICATION', title, message, type };
+  if (tabId) {
+    chrome.tabs.sendMessage(tabId, payload).catch(() => {});
+  } else {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0 && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, payload).catch(() => {});
+      }
+    });
+  }
 }
 
 // Listen for messages from content script

@@ -15,7 +15,7 @@ interface ChatTurnCardProps {
 export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
   const { selectedTurns, toggleTurnSelection, removeTurn, removeAttachment, exportThinkingMap, setExportThinking } = useEditorStore();
   const isSelected = selectedTurns.has(index);
-  const [showContent, setShowContent] = useState(true);
+  const [showContent, setShowContent] = useState(false);
   const [showThinkingSection, setShowThinkingSection] = useState(false);
   
   const exportThinking = exportThinkingMap.get(index) ?? true;
@@ -25,8 +25,13 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
   const isModel = turn.role === 'model';
 
   return (
-    <div className={`group border-l-2 py-8 px-8 transition-all ${isSelected ? 'border-foreground bg-muted/30' : 'border-transparent hover:border-border'}`}>
-      <div className="flex items-start justify-between mb-6">
+    <div className={`group border-2 p-6 mb-6 transition-all duration-300 relative ${isSelected ? 'border-foreground bg-foreground/5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] translate-x-[-2px] translate-y-[-2px]' : 'border-border hover:border-foreground hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)]'}`}>
+      {/* Decorative SVG Corner */}
+      <svg className="absolute top-0 right-0 w-8 h-8 text-border group-hover:text-foreground transition-colors" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 0H0V2H30V32H32V0Z" fill="currentColor"/>
+      </svg>
+      
+      <div className="flex items-start justify-between mb-6 border-b-2 border-border pb-4">
         <div className="flex items-center gap-4">
           <Checkbox
             checked={isSelected}

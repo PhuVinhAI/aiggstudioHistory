@@ -81,16 +81,37 @@ export default function Editor() {
       
       <ScrollArea className="flex-1">
         <div className="mx-auto max-w-[1000px] py-20 px-6">
-          <header className="mb-20 border-b border-foreground pb-8 flex items-end justify-between">
-            <div>
-              <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">Manuscript</h1>
-              <p className="text-xs font-bold uppercase text-muted-foreground mt-4 tracking-widest">
-                Data verification & logic refinement interface
+          <header className="mb-20 border-b-4 border-foreground pb-8 flex items-end justify-between relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-4">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-foreground animate-spin-slow">
+                  <path d="M20 0V40M0 20H40" stroke="currentColor" strokeWidth="4"/>
+                  <circle cx="20" cy="20" r="12" stroke="currentColor" strokeWidth="4"/>
+                </svg>
+                <div className="h-2 w-20 bg-foreground"></div>
+              </div>
+              <h1 className="text-7xl font-black uppercase tracking-tighter leading-[0.8] mb-2">
+                CORE<br/>MANUSCRIPT
+              </h1>
+              <p className="text-sm font-bold uppercase text-foreground bg-foreground/10 inline-block px-3 py-1 mt-4 tracking-widest border border-foreground">
+                Data verification & logic refinement // V.2
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Session</div>
-              <div className="text-sm font-bold uppercase tracking-tighter">Local_Cache_0x1</div>
+            <div className="text-right flex flex-col items-end z-10">
+              <svg width="60" height="20" viewBox="0 0 60 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-4">
+                <rect width="8" height="20" fill="currentColor"/>
+                <rect x="12" width="4" height="20" fill="currentColor"/>
+                <rect x="20" width="12" height="20" fill="currentColor"/>
+                <rect x="36" width="4" height="20" fill="currentColor"/>
+                <rect x="44" width="16" height="20" fill="currentColor"/>
+              </svg>
+              <div className="text-[10px] font-black uppercase tracking-widest border-b border-foreground pb-1 mb-1">Active Session</div>
+              <div className="text-xl font-black uppercase tracking-tighter">SYS_CACHE_0x1</div>
+            </div>
+            
+            {/* Background decorative typography */}
+            <div className="absolute right-0 top-0 opacity-5 pointer-events-none select-none">
+              <span className="text-[150px] font-black leading-none tracking-tighter">RAW</span>
             </div>
           </header>
 

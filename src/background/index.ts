@@ -1,27 +1,18 @@
 import { extractPromptIdFromUrl, convertPromptDataToChatTurns } from '../utils/api';
 
-// Dùng 1 icon PNG chuẩn bằng Base64 để tránh lỗi SVG của Chrome Notifications
-const ICON_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAxElEQVR4nO3VQWpCQRSG4W/oBlp0FV0h1xHcg5uRuBE30E2IuI7uIt0iXTToIjhwwV+YkPBT34Vzwg+XGZ6Z18MwDEe0cIUTTnjBByZou4g7rOGG5/KdcMQh0h7e8VnK11iU8jFqA1zjP3zjPXXMFT4x6yJu8IEZrnGHGzS7iHss8YgrXOE2/Vlww7yLeMAWd+G1Rz1g+y/wI14yE10cK2Y4x6tq7B1H2FfX2FeX2FeX2FeX2FeX2FeX2JfvAafKx1j1Xb3fX+YfB3hAEX0aFxcAAAAASUVORK5CYII=';
-
 async function showNotification(title: string, message: string, type: 'info' | 'error' | 'success' = 'info', tabId?: number) {
-  // 1. Hiển thị thông báo hệ thống (Across entire window/OS)
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: ICON_BASE64,
-    title: `${type.toUpperCase()}: ${title}`,
-    message: message,
-    priority: 2
-  });
-
-  // 2. Vẫn gửi xuống Content Script để hiển thị Toast trong trang (nếu muốn)
+  // Đã bỏ chrome.notifications vì OS Windows thường xuyên chặn (Focus Assist).
+  // Chỉ sử dụng hệ thống Brutalist Toast nhúng thẳng vào DOM để đảm bảo 100% người dùng nhìn thấy.
+  
   const payload = { action: 'SHOW_NOTIFICATION', title, message, type };
   if (tabId) {
     chrome.tabs.sendMessage(tabId, payload).catch(() => {});
   } else {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0 && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, payload).catch(() => {});
-      }
+    // Broadcast cho tất cả tab của AI Studio
+    chrome.tabs.query({ url: "https://aistudio.google.com/*" }, (tabs) => {
+      tabs.forEach(tab => {
+        if (tab.id) chrome.tabs.sendMessage(tab.id, payload).catch(() => {});
+      });
     });
   }
 }

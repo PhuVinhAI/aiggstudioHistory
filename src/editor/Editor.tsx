@@ -91,10 +91,10 @@ export default function Editor() {
                 <div className="h-2 w-20 bg-foreground"></div>
               </div>
               <h1 className="text-7xl font-black uppercase tracking-tighter leading-[0.8] mb-2">
-                CORE<br/>MANUSCRIPT
+                DỮ LIỆU<br/>LÕI
               </h1>
               <p className="text-sm font-bold uppercase text-foreground bg-foreground/10 inline-block px-3 py-1 mt-4 tracking-widest border border-foreground">
-                Data verification & logic refinement // V.2
+                GIAO DIỆN KIỂM CHỨNG & TINH CHỈNH LOGIC // V.2
               </p>
             </div>
             <div className="text-right flex flex-col items-end z-10">
@@ -105,13 +105,13 @@ export default function Editor() {
                 <rect x="36" width="4" height="20" fill="currentColor"/>
                 <rect x="44" width="16" height="20" fill="currentColor"/>
               </svg>
-              <div className="text-[10px] font-black uppercase tracking-widest border-b border-foreground pb-1 mb-1">Active Session</div>
+              <div className="text-[10px] font-black uppercase tracking-widest border-b border-foreground pb-1 mb-1">PHIÊN HOẠT ĐỘNG</div>
               <div className="text-xl font-black uppercase tracking-tighter">SYS_CACHE_0x1</div>
             </div>
             
             {/* Background decorative typography */}
             <div className="absolute right-0 top-0 opacity-5 pointer-events-none select-none">
-              <span className="text-[150px] font-black leading-none tracking-tighter">RAW</span>
+              <span className="text-[150px] font-black leading-none tracking-tighter">GỐC</span>
             </div>
           </header>
 

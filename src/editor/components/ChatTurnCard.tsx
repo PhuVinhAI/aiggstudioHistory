@@ -64,7 +64,7 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
                     onCheckedChange={(checked) => setExportThinking(index, !!checked)}
                   />
                   <Brain className="h-4 w-4" />
-                  <span className="text-sm font-medium">Thinking Process</span>
+                  <span className="text-xs font-black uppercase tracking-widest">QUÁ TRÌNH SUY NGHĨ</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -89,7 +89,7 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
-                  <span className="text-sm font-medium">Response</span>
+                  <span className="text-xs font-black uppercase tracking-widest">PHẢN HỒI</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -117,8 +117,8 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    <span className="text-sm font-medium">
-                      {turn.role === 'user' ? 'Message' : 'Response'}
+                    <span className="text-xs font-black uppercase tracking-widest">
+                      {turn.role === 'user' ? 'TIN NHẮN' : 'PHẢN HỒI'}
                     </span>
                   </div>
                   <Button
@@ -146,7 +146,7 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Brain className="h-4 w-4" />
-                    <span className="text-sm font-medium">Thinking Process</span>
+                    <span className="text-xs font-black uppercase tracking-widest">QUÁ TRÌNH SUY NGHĨ</span>
                   </div>
                   <Button
                     variant="ghost"

@@ -71,7 +71,7 @@ export function Toolbar() {
     <div className="sticky top-0 z-50 border-b border-border bg-background antialiased tracking-tight">
       <div className="mx-auto max-w-[1400px] px-6 flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
-          <h2 className="text-sm font-black uppercase tracking-tighter">Editor.v1</h2>
+          <h2 className="text-sm font-black uppercase tracking-tighter">TRÌNH CHỈNH SỬA .V1</h2>
           
           <div className="h-4 w-px bg-border" />
 
@@ -81,7 +81,7 @@ export function Toolbar() {
               disabled={isExporting}
               className="text-[11px] font-bold uppercase hover:text-muted-foreground transition-colors disabled:opacity-30"
             >
-              {allSelected ? 'Deselect All' : 'Select All'}
+              {allSelected ? 'BỎ CHỌN TẤT CẢ' : 'CHỌN TẤT CẢ'}
             </button>
           
             <Button
@@ -89,9 +89,10 @@ export function Toolbar() {
               size="sm"
               onClick={handleRestore}
               disabled={isExporting}
+              className="uppercase font-bold text-xs"
             >
               <RotateCcw className="mr-2 h-4 w-4" />
-              Khôi phục
+              KHÔI PHỤC GỐC
             </Button>
             
             <div className="flex items-center gap-2">
@@ -100,8 +101,8 @@ export function Toolbar() {
                 checked={showThinking}
                 onCheckedChange={setShowThinking}
               />
-              <Label htmlFor="show-thinking" className="text-sm">
-                Export thinking
+              <Label htmlFor="show-thinking" className="text-xs font-bold uppercase">
+                XUẤT SUY LUẬN
               </Label>
             </div>
             
@@ -111,8 +112,8 @@ export function Toolbar() {
                 checked={includeImages}
                 onCheckedChange={setIncludeImages}
               />
-              <Label htmlFor="include-images" className="text-sm">
-                Tải ảnh
+              <Label htmlFor="include-images" className="text-xs font-bold uppercase">
+                TẢI ẢNH
               </Label>
             </div>
             
@@ -122,24 +123,24 @@ export function Toolbar() {
                 checked={includePDFs}
                 onCheckedChange={setIncludePDFs}
               />
-              <Label htmlFor="include-pdfs" className="text-sm">
-                Tải PDF
+              <Label htmlFor="include-pdfs" className="text-xs font-bold uppercase">
+                TẢI PDF
               </Label>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={handleExport} disabled={isExporting}>
+          <Button onClick={handleExport} disabled={isExporting} className="uppercase font-bold text-xs">
             {isExporting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang xuất...
+                ĐANG XUẤT...
               </>
             ) : (
               <>
                 <Download className="mr-2 h-4 w-4" />
-                Export ({selectedTurns.size}/{chatTurns.length})
+                XUẤT FILE ({selectedTurns.size}/{chatTurns.length})
               </>
             )}
           </Button>

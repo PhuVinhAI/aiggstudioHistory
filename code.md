@@ -42,9 +42,12 @@ When introducing new packages, frameworks, libraries, or setting up projects, DO
 
 <workflow_rules>
 ### TERMINAL COMMANDS FOR SETUP & DEPENDENCIES
-If your solution requires installing new packages or running setup scripts, output the exact commands inside a standard `bash` code block BEFORE providing any code changes.
+If your solution requires installing new packages or running setup scripts, you MUST include the exact commands inside a standard `bash` code block.
+CRITICAL: This `bash` block MUST be placed INSIDE the `<<<START OF DIFF>>>` and `<<<END OF DIFF>>>` markers, and MUST be preceded by the header `# Terminal`.
+
 Example:
 ```bash
+# Terminal
 npm install axios @tanstack/react-query
 ```
 
@@ -59,7 +62,7 @@ When providing code changes, you MUST use the exact `SEARCH/REPLACE` block forma
 5. The `>>>>>>> REPLACE` section contains the exact new code.
 
 **Format:**
-You MUST wrap ALL your SEARCH/REPLACE blocks or new file blocks together inside `<<<START OF DIFF>>>` and `<<<END OF DIFF>>>` markers. The downstream agent will ONLY read content inside these markers.
+You MUST wrap ALL your SEARCH/REPLACE blocks, new file blocks, AND terminal command blocks together inside `<<<START OF DIFF>>>` and `<<<END OF DIFF>>>` markers. The downstream agent will ONLY read content inside these markers.
 
 <<<START OF DIFF>>>
 ```language
@@ -95,7 +98,7 @@ You MUST wrap ALL your SEARCH/REPLACE blocks or new file blocks together inside 
 ```
 <<<END OF DIFF>>>
 
-*If creating a completely new file, do not use SEARCH/REPLACE. Just output the full file content inside a standard code block, preceded by `# File: path/to/newfile.ext`, but STILL wrap it inside the `<<<START OF DIFF>>>` / `<<<END OF DIFF>>>` markers.*
+*If creating a completely new file, do not use SEARCH/REPLACE. Just output the full file content inside a standard code block, preceded by `# File: path/to/newfile.ext`, but STILL wrap it inside the `<<<START OF DIFF>>>` / `<<<END OF DIFF>>>` markers. Terminal commands follow the same rule using the `# Terminal` header.*
 </workflow_rules>
 
 <never_ever_do>

@@ -69,10 +69,26 @@ If and ONLY if all verification commands pass successfully, you MUST automatical
 - Run `git push`
 - Do NOT ask for permission to push if tests pass, just do it.
 </directive>
+
+<directive name="terminal_command_handling" priority="absolute">
+When processing `<<<START OF DIFF>>>` / `<<<END OF DIFF>>>` blocks, you MUST:
+1. FIRST, scan for any `# Terminal` code blocks inside the diff markers.
+2. If found, execute each terminal command using the `bash` tool BEFORE applying any file changes.
+3. Terminal commands are identified by a `bash` code block with `# Terminal` header inside the diff markers.
+4. Store the output of terminal commands for reference but do not output them to the user.
+</directive>
 </core_directives>
 
 <execution_workflow>
 When you receive one or more `SEARCH/REPLACE` blocks or file creation requests:
+
+**PHASE 0: TERMINAL COMMAND EXECUTION (CRITICAL)**
+0. Scan the entire `<<<START OF DIFF>>>` / `<<<END OF DIFF>>>` block for any `# Terminal` sections.
+1. If terminal commands are found:
+   - Extract ALL `bash` code blocks that start with `# Terminal` header.
+   - Execute each terminal command in order using the `bash` tool.
+   - Wait for each command to complete before proceeding to the next.
+   - Continue to Phase 1 only after ALL terminal commands have been executed.
 
 **PHASE 1: BATCH PATCHING & REPORTING (MAX 5 FILES PER BATCH)**
 1. Identify ALL target files from the received request.

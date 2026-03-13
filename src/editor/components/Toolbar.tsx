@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Download, CheckSquare, Square, RotateCcw, Loader2 } from 'lucide-react';
+import { Download, RotateCcw, Loader2 } from 'lucide-react';
 import { useEditorStore } from '@/lib/store';
 import { exportChat } from '@/utils/export';
 import { toast } from 'sonner';
@@ -68,69 +68,64 @@ export function Toolbar() {
   const allSelected = selectedTurns.size === chatTurns.length;
 
   return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto max-w-4xl px-4 flex h-14 items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={allSelected ? deselectAllTurns : selectAllTurns}
-            disabled={isExporting}
-          >
-            {allSelected ? (
-              <>
-                <Square className="mr-2 h-4 w-4" />
-                Bỏ chọn tất cả
-              </>
-            ) : (
-              <>
-                <CheckSquare className="mr-2 h-4 w-4" />
-                Chọn tất cả
-              </>
-            )}
-          </Button>
+    <div className="sticky top-0 z-50 border-b border-border bg-background antialiased tracking-tight">
+      <div className="mx-auto max-w-[1400px] px-6 flex h-16 items-center justify-between">
+        <div className="flex items-center gap-8">
+          <h2 className="text-sm font-black uppercase tracking-tighter">Editor.v1</h2>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRestore}
-            disabled={isExporting}
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Khôi phục
-          </Button>
+          <div className="h-4 w-px bg-border" />
+
+          <div className="flex items-center gap-6">
+            <button
+              onClick={allSelected ? deselectAllTurns : selectAllTurns}
+              disabled={isExporting}
+              className="text-[11px] font-bold uppercase hover:text-muted-foreground transition-colors disabled:opacity-30"
+            >
+              {allSelected ? 'Deselect All' : 'Select All'}
+            </button>
           
-          <div className="flex items-center gap-2">
-            <Switch
-              id="show-thinking"
-              checked={showThinking}
-              onCheckedChange={setShowThinking}
-            />
-            <Label htmlFor="show-thinking" className="text-sm">
-              Export thinking
-            </Label>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Switch
-              id="include-images"
-              checked={includeImages}
-              onCheckedChange={setIncludeImages}
-            />
-            <Label htmlFor="include-images" className="text-sm">
-              Tải ảnh
-            </Label>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Switch
-              id="include-pdfs"
-              checked={includePDFs}
-              onCheckedChange={setIncludePDFs}
-            />
-            <Label htmlFor="include-pdfs" className="text-sm">
-              Tải PDF
-            </Label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRestore}
+              disabled={isExporting}
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Khôi phục
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Switch
+                id="show-thinking"
+                checked={showThinking}
+                onCheckedChange={setShowThinking}
+              />
+              <Label htmlFor="show-thinking" className="text-sm">
+                Export thinking
+              </Label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Switch
+                id="include-images"
+                checked={includeImages}
+                onCheckedChange={setIncludeImages}
+              />
+              <Label htmlFor="include-images" className="text-sm">
+                Tải ảnh
+              </Label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Switch
+                id="include-pdfs"
+                checked={includePDFs}
+                onCheckedChange={setIncludePDFs}
+              />
+              <Label htmlFor="include-pdfs" className="text-sm">
+                Tải PDF
+              </Label>
+            </div>
           </div>
         </div>
 

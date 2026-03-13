@@ -76,17 +76,23 @@ export default function Editor() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-background font-sans selection:bg-foreground selection:text-background">
       <Toolbar />
       
       <ScrollArea className="flex-1">
-        <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">AI Studio Chat Editor</h1>
-            <p className="text-sm text-muted-foreground">
-              Chỉnh sửa và tùy chỉnh lịch sử chat trước khi export
-            </p>
-          </div>
+        <div className="mx-auto max-w-[1000px] py-20 px-6">
+          <header className="mb-20 border-b border-foreground pb-8 flex items-end justify-between">
+            <div>
+              <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">Manuscript</h1>
+              <p className="text-xs font-bold uppercase text-muted-foreground mt-4 tracking-widest">
+                Data verification & logic refinement interface
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Session</div>
+              <div className="text-sm font-bold uppercase tracking-tighter">Local_Cache_0x1</div>
+            </div>
+          </header>
 
           {chatTurns.length === 0 ? (
             <div className="text-center py-12">

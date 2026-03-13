@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Key, ExternalLink, CheckCircle2, AlertCircle, Loader2, Cpu } from 'lucide-react';
+import { ExternalLink, CheckCircle2, Loader2, Cpu } from 'lucide-react';
 import { extractPromptIdFromUrl, fetchPromptDataFromDrive, convertPromptDataToChatTurns } from '../utils/api';
 import { TokenGuide } from '../components/TokenGuide';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -13,7 +12,6 @@ export default function Popup() {
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
   const [saved, setSaved] = useState(false);
-  const [autoDetected, setAutoDetected] = useState(false);
   const [isCallingKilo, setIsCallingKilo] = useState(false);
   const [autoWatch, setAutoWatch] = useState(false);
 
@@ -26,10 +24,6 @@ export default function Popup() {
       if (changes.driveToken) {
         const newToken = changes.driveToken.newValue as string | undefined;
         setDriveToken(newToken || '');
-        if (newToken) {
-          setAutoDetected(true);
-          setTimeout(() => setAutoDetected(false), 3000);
-        }
       }
     };
     
@@ -124,126 +118,102 @@ export default function Popup() {
   const isAIStudioPage = currentUrl.includes('aistudio.google.com');
 
   return (
-    <div className="w-[400px] max-h-[600px] flex flex-col">
+    <div className="w-[380px] max-h-[600px] flex flex-col bg-background antialiased tracking-tight">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4">
-        <h1 className="text-lg font-semibold mb-1">AI Studio Chat Archiver</h1>
-        <div className="flex items-center gap-2 text-sm">
-          {isAIStudioPage ? (
-            <>
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Sẵn sàng</span>
-            </>
-          ) : (
-            <>
-              <AlertCircle className="h-4 w-4" />
-              <span>Vui lòng mở AI Studio</span>
-            </>
-          )}
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-xl font-bold uppercase tracking-tighter">Archiver</h1>
+          <div className={`px-2 py-0.5 text-[10px] font-bold uppercase border ${isAIStudioPage ? 'border-foreground bg-foreground text-background' : 'border-destructive text-destructive'}`}>
+            {isAIStudioPage ? 'Ready' : 'Incompatible'}
+          </div>
         </div>
+        <p className="text-[11px] text-muted-foreground uppercase font-medium">AI Studio Control Interface</p>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Token Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span>Drive API Token</span>
-              <Button
-                variant={driveToken ? 'default' : 'secondary'}
-                size="sm"
-                onClick={() => setShowTokenInput(!showTokenInput)}
-                className="h-8"
-              >
-                <Key className="h-3 w-3 mr-2" />
-                {autoDetected ? 'Tự động phát hiện!' : driveToken ? 'Đã có token' : 'Nhập token'}
-              </Button>
-            </CardTitle>
-            <CardDescription className="text-xs">
-              {autoDetected 
-                ? 'Token đã được tự động lấy từ AI Studio' 
-                : 'Token cần thiết để tải file từ Drive'
-              }
-            </CardDescription>
-          </CardHeader>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <span className="text-xs font-bold uppercase">Drive Token</span>
+            <button 
+              onClick={() => setShowTokenInput(!showTokenInput)}
+              className="text-[10px] underline underline-offset-4 font-bold uppercase hover:text-muted-foreground transition-colors"
+            >
+              {driveToken ? 'Stored' : 'Empty'}
+            </button>
+          </div>
 
           {showTokenInput && (
-            <CardContent className="space-y-3">
+            <div className="space-y-3 pt-3">
               <div className="space-y-2">
-                <Label htmlFor="token">Token</Label>
+                <Label htmlFor="token" className="text-[10px] uppercase font-bold">Token</Label>
                 <Input
                   id="token"
                   type="password"
                   value={driveToken}
                   onChange={(e) => setDriveToken(e.target.value)}
-                  placeholder="Nhập Drive API token..."
+                  placeholder="Enter Drive API token..."
+                  className="text-sm"
                 />
               </div>
               
               <Button 
                 onClick={handleSaveToken}
-                className="w-full"
+                className="w-full bg-foreground text-background font-bold uppercase text-xs"
                 size="sm"
               >
                 {saved ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Đã lưu!
+                    <CheckCircle2 className="h-3 w-3 mr-2" />
+                    Saved
                   </>
                 ) : (
-                  'Lưu token'
+                  'Save Token'
                 )}
               </Button>
 
               <TokenGuide />
-            </CardContent>
+            </div>
           )}
-        </Card>
+        </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="space-y-4">
           {/* Call Kilo Button */}
-          <Button
+          <button
             onClick={handleCallKilo}
             disabled={!isAIStudioPage || isCallingKilo}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            size="lg"
+            className="w-full bg-foreground text-background py-4 px-4 font-bold uppercase text-sm flex items-center justify-between hover:bg-muted-foreground transition-all disabled:opacity-20 group"
           >
-            {isCallingKilo ? (
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            ) : (
-              <Cpu className="h-5 w-5 mr-2" />
-            )}
-            {isCallingKilo ? 'Đang gọi Kilo...' : 'Gọi Kilo thủ công'}
-          </Button>
+            <span>Run Kilo Process</span>
+            {isCallingKilo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Cpu className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+          </button>
 
           {/* Open Editor Button */}
-          <Button
+          <button
             onClick={handleOpenEditor}
             disabled={!isAIStudioPage}
-            variant="outline"
-            className="w-full"
-            size="lg"
+            className="w-full border border-foreground py-4 px-4 font-bold uppercase text-sm flex items-center justify-between hover:bg-muted transition-all disabled:opacity-20"
           >
-            <ExternalLink className="h-5 w-5 mr-2" />
-            Mở Editor để Export
-          </Button>
+            <span>Open Studio Editor</span>
+            <ExternalLink className="h-4 w-4" />
+          </button>
           
           {/* Auto Watch Kilo Feature */}
-          <div className="flex items-center justify-between p-3 mt-2 bg-muted/50 rounded-lg border">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Auto-Watch Kilo</Label>
-              <p className="text-[11px] text-muted-foreground leading-tight">
-                Tự động gửi Kilo chạy ngầm mỗi khi AI vừa trả lời xong.
-              </p>
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase">Automated Watch</span>
+              <Switch
+                checked={autoWatch}
+                onCheckedChange={async (checked) => {
+                  setAutoWatch(checked);
+                  await chrome.storage.local.set({ autoWatchKilo: checked });
+                }}
+              />
             </div>
-            <Switch
-              checked={autoWatch}
-              onCheckedChange={async (checked) => {
-                setAutoWatch(checked);
-                await chrome.storage.local.set({ autoWatchKilo: checked });
-              }}
-            />
+            <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">
+              BACKGROUND MONITORING ACTIVE. KILO WILL AUTOMATICALLY INTERCEPT DIFF BLOCKS UPON COMPLETION.
+            </p>
           </div>
         </div>
       </div>

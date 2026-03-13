@@ -1,7 +1,6 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Trash2, FileText, Image as ImageIcon, User, Bot, Brain, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, FileText, Image as ImageIcon, Brain, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEditorStore } from '@/lib/store';
 import type { ChatTurn } from '@/types';
 import ReactMarkdown from 'react-markdown';
@@ -16,7 +15,7 @@ interface ChatTurnCardProps {
 export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
   const { selectedTurns, toggleTurnSelection, removeTurn, removeAttachment, exportThinkingMap, setExportThinking } = useEditorStore();
   const isSelected = selectedTurns.has(index);
-  const [showContent, setShowContent] = useState(false);
+  const [showContent, setShowContent] = useState(true);
   const [showThinkingSection, setShowThinkingSection] = useState(false);
   
   const exportThinking = exportThinkingMap.get(index) ?? true;
@@ -26,23 +25,17 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
   const isModel = turn.role === 'model';
 
   return (
-    <Card className={isSelected ? 'border-primary' : ''}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex items-center gap-2">
+    <div className={`group border-l-2 py-8 px-8 transition-all ${isSelected ? 'border-foreground bg-muted/30' : 'border-transparent hover:border-border'}`}>
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center gap-4">
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => toggleTurnSelection(index)}
+            className="rounded-none border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
           />
-          <div className="flex items-center gap-2">
-            {turn.role === 'user' ? (
-              <User className="h-4 w-4" />
-            ) : (
-              <Bot className="h-4 w-4" />
-            )}
-            <span className="font-semibold">
-              {turn.role === 'user' ? 'User' : 'Model'}
-            </span>
-          </div>
+          <span className="text-xs font-black uppercase tracking-widest">
+            {turn.role} <span className="text-muted-foreground font-normal ml-2">[{String(index + 1).padStart(2, '0')}]</span>
+          </span>
         </div>
         <Button
           variant="ghost"
@@ -52,8 +45,8 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
         >
           <Trash2 className="h-4 w-4" />
         </Button>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </div>
+      <div className="space-y-3">
         {/* Nếu là Model và có cả thinking + content, gộp chung */}
         {isModel && hasThoughts && hasContent ? (
           <div className="space-y-3">
@@ -206,7 +199,7 @@ export function ChatTurnCard({ turn, index }: ChatTurnCardProps) {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

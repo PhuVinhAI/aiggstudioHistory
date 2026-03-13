@@ -17,7 +17,7 @@ export function NotificationWindow() {
         backgroundColor: bgColor,
         minHeight: '100vh',
         padding: '24px',
-        fontFamily: '"Helvetica Neue", Arial, sans-serif',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
         color: '#000',
         boxSizing: 'border-box',
         border: '8px solid #000',

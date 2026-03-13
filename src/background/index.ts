@@ -1,20 +1,37 @@
 import { extractPromptIdFromUrl, convertPromptDataToChatTurns } from '../utils/api';
 
 async function showNotification(title: string, message: string, type: 'info' | 'error' | 'success' = 'info', tabId?: number) {
-  // Đã bỏ chrome.notifications vì OS Windows thường xuyên chặn (Focus Assist).
-  // Chỉ sử dụng hệ thống Brutalist Toast nhúng thẳng vào DOM để đảm bảo 100% người dùng nhìn thấy.
-  
+  // 1. Broadcast Toast cho DOM (dành cho người dùng đang xem trực tiếp tab AI Studio)
   const payload = { action: 'SHOW_NOTIFICATION', title, message, type };
   if (tabId) {
     chrome.tabs.sendMessage(tabId, payload).catch(() => {});
   } else {
-    // Broadcast cho tất cả tab của AI Studio
     chrome.tabs.query({ url: "https://aistudio.google.com/*" }, (tabs) => {
       tabs.forEach(tab => {
         if (tab.id) chrome.tabs.sendMessage(tab.id, payload).catch(() => {});
       });
     });
   }
+
+  // 2. MỞ CHROME WINDOW POPUP: Cách duy nhất vượt qua Focus Assist của Windows
+  // Window này sẽ tự động đè lên trên các ứng dụng khác (kể cả khi đang code ở VSCode)
+  const notifUrl = chrome.runtime.getURL(`src/notification/index.html?title=${encodeURIComponent(title)}&message=${encodeURIComponent(message)}&type=${type}`);
+  
+  chrome.windows.create({
+    url: notifUrl,
+    type: 'popup',
+    width: 450,
+    height: 220,
+    focused: true, // Ép lên trên cùng
+    setSelfAsOpener: true
+  }, (win) => {
+    // Tự động đóng window sau 6 giây
+    if (win && win.id) {
+      setTimeout(() => {
+        chrome.windows.remove(win.id!).catch(() => {});
+      }, 6000);
+    }
+  });
 }
 
 // Listen for messages from content script

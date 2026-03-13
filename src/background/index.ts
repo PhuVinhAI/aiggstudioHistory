@@ -34,7 +34,12 @@ async function showNotification(title: string, message: string, type: 'info' | '
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'executeKiloWorkflow') {
-    executeAutoKiloWorkflow(request.url, sender.tab?.id).catch(console.error);
+    executeKiloWorkflow(request.url, sender.tab?.id, false).catch(console.error);
+    return true;
+  }
+
+  if (request.action === 'executeManualKilo') {
+    executeKiloWorkflow(request.url, request.tabId, true).catch(console.error);
     return true;
   }
 
@@ -145,24 +150,27 @@ async function downloadDriveFile(fileId: string, token?: string): Promise<{ data
 
 console.log('AI Studio Chat Archiver: Background service worker started');
 
-async function executeAutoKiloWorkflow(url: string, tabId?: number) {
+async function executeKiloWorkflow(url: string, tabId?: number, isManual: boolean = false) {
+  const prefix = isManual ? 'Kilo Thủ Công' : 'Auto-Kilo';
   const promptId = extractPromptIdFromUrl(url);
+  
   if (!promptId) {
-    console.error('AutoKilo: Không tìm thấy promptId trên URL');
+    console.error(`${prefix}: Không tìm thấy promptId trên URL`);
+    if (isManual) showNotification(`Lỗi ${prefix}`, 'Vui lòng mở trang AI Studio chat trước.', 'error', tabId);
     return;
   }
 
   const result = await chrome.storage.local.get(['driveToken']) as { driveToken?: string };
   const driveToken = result.driveToken;
   if (!driveToken) {
-    showNotification('Lỗi Auto-Kilo', 'Chưa cấu hình Drive Token. Hãy mở Popup extension.', 'error', tabId);
+    showNotification(`Lỗi ${prefix}`, 'Chưa cấu hình Drive Token. Hãy mở Popup extension.', 'error', tabId);
     return;
   }
 
   try {
     const promptData = await fetchPromptDataFromDrive(promptId, driveToken);
     if (!promptData) {
-      showNotification('Lỗi Auto-Kilo', 'Không thể tải dữ liệu lịch sử chat từ Google Drive.', 'error', tabId);
+      showNotification(`Lỗi ${prefix}`, 'Không thể tải dữ liệu lịch sử chat từ Google Drive.', 'error', tabId);
       return;
     }
 
@@ -182,12 +190,12 @@ async function executeAutoKiloWorkflow(url: string, tabId?: number) {
     if (matches.length > 0) {
       prompt = matches.map(m => m[1].trim()).join('\n\n');
     } else {
-      showNotification('Auto-Kilo Bỏ Qua', 'AI đã trả lời nhưng không có mã nguồn nào cần cập nhật.');
+      showNotification(`${prefix} Bỏ Qua`, 'AI đã trả lời nhưng không có mã nguồn nào cần cập nhật.', 'info', tabId);
       return;
     }
 
     // Thông báo bắt đầu chạy
-    showNotification('Auto-Kilo Đang Chạy', 'Đang gửi mã nguồn xuống cho Kilo CLI xử lý...');
+    showNotification(`${prefix} Đang Chạy`, 'Đang gửi mã nguồn xuống cho Kilo CLI xử lý...', 'info', tabId);
 
     // Đợi Kilo process kết thúc (Local server trả về HTTP 200 hoặc HTTP 500)
     const response = await fetch('http://localhost:9999/api/kilo', {
@@ -199,13 +207,13 @@ async function executeAutoKiloWorkflow(url: string, tabId?: number) {
     const data = await response.json().catch(() => ({}));
 
     if (response.ok) {
-      showNotification('Auto-Kilo Hoàn Thành', 'Kilo CLI đã xử lý và áp dụng mã nguồn xong!');
+      showNotification(`${prefix} Hoàn Thành`, 'Kilo CLI đã xử lý và áp dụng mã nguồn xong!', 'success', tabId);
     } else {
       const errorMsg = data.error || 'Kilo CLI gặp lỗi khi thực thi. Hãy kiểm tra terminal.';
-      showNotification('Auto-Kilo Thất Bại', errorMsg);
+      showNotification(`${prefix} Thất Bại`, errorMsg, 'error', tabId);
     }
   } catch (error) {
-    console.error('Lỗi khi auto-execute Kilo:', error);
-    showNotification('Auto-Kilo Lỗi Kết Nối', 'Không thể kết nối đến máy chủ Kilo Local (Cổng 9999). Bạn đã chạy npm run server chưa?');
+    console.error(`Lỗi khi execute Kilo (${prefix}):`, error);
+    showNotification(`${prefix} Lỗi Kết Nối`, 'Không thể kết nối máy chủ Kilo Local (Cổng 9999). Bạn đã chạy "ai-kilo-server" chưa?', 'error', tabId);
   }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ExternalLink, CheckCircle2, Loader2, Cpu } from 'lucide-react';
-import { extractPromptIdFromUrl, fetchPromptDataFromDrive, convertPromptDataToChatTurns } from '../utils/api';
+import { ExternalLink, CheckCircle2, Cpu } from 'lucide-react';
+import { extractPromptIdFromUrl } from '../utils/api';
 import { TokenGuide } from '../components/TokenGuide';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,6 @@ export default function Popup() {
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
   const [saved, setSaved] = useState(false);
-  const [isCallingKilo, setIsCallingKilo] = useState(false);
   const [autoWatch, setAutoWatch] = useState(false);
 
   useEffect(() => {
@@ -63,44 +62,14 @@ export default function Popup() {
       return;
     }
 
-    try {
-      setIsCallingKilo(true);
-      
-      const promptData = await fetchPromptDataFromDrive(promptId, driveToken);
-      if (!promptData) throw new Error('Không thể tải dữ liệu từ Google Drive');
-
-      const chatTurns = convertPromptDataToChatTurns(promptData);
-      if (chatTurns.length === 0) throw new Error('Đoạn chat trống rỗng');
-
-      const lastTurn = chatTurns[chatTurns.length - 1];
-      let prompt = lastTurn.content;
-
-      if (!prompt) throw new Error('Tin nhắn cuối cùng bị rỗng');
-
-      // Trích xuất nội dung nằm giữa <<<START OF DIFF>>> và <<<END OF DIFF>>>
-      const diffRegex = /<<<START OF DIFF>>>([\s\S]*?)<<<END OF DIFF>>>/g;
-      const matches = [...prompt.matchAll(diffRegex)];
-      
-      if (matches.length > 0) {
-        // Gộp tất cả các block diff lại nếu AI sinh ra nhiều block
-        prompt = matches.map(m => m[1].trim()).join('\n\n');
-      } else {
-        console.warn('Không tìm thấy block <<<START OF DIFF>>>, fallback gửi toàn bộ nội dung.');
-      }
-
-      const response = await fetch('http://localhost:9999/api/kilo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.id) {
+      chrome.runtime.sendMessage({ 
+        action: 'executeManualKilo', 
+        url: currentUrl,
+        tabId: tab.id
       });
-
-      if (!response.ok) throw new Error('Kilo Server báo lỗi hoặc không thể kết nối');
-      
-      alert('Kilo CLI đã xử lý và áp dụng code thành công!');
-    } catch (error) {
-      alert((error as Error).message);
-    } finally {
-      setIsCallingKilo(false);
+      window.close();
     }
   };
 
@@ -182,11 +151,11 @@ export default function Popup() {
           {/* Call Kilo Button */}
           <button
             onClick={handleCallKilo}
-            disabled={!isAIStudioPage || isCallingKilo}
+            disabled={!isAIStudioPage}
             className="w-full bg-foreground text-background py-4 px-4 font-black uppercase text-sm flex items-center justify-between hover:bg-muted-foreground transition-all disabled:opacity-20 group tracking-widest"
           >
             <span>CHẠY TIẾN TRÌNH KILO</span>
-            {isCallingKilo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Cpu className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+            <Cpu className="h-4 w-4 group-hover:scale-110 transition-transform" />
           </button>
 
           {/* Open Editor Button */}

@@ -19,7 +19,6 @@ export default defineConfig({
       input: {
         editor: path.resolve(__dirname, 'src/editor/index.html'),
         popup: path.resolve(__dirname, 'src/popup/index.html'),
-        notification: path.resolve(__dirname, 'src/notification/index.html'),
       },
     },
   },

@@ -13,25 +13,22 @@ async function showNotification(title: string, message: string, type: 'info' | '
     });
   }
 
-  // 2. MỞ CHROME WINDOW POPUP: Cách duy nhất vượt qua Focus Assist của Windows
-  // Window này sẽ tự động đè lên trên các ứng dụng khác (kể cả khi đang code ở VSCode)
-  const notifUrl = chrome.runtime.getURL(`src/notification/index.html?title=${encodeURIComponent(title)}&message=${encodeURIComponent(message)}&type=${type}`);
-  
-  chrome.windows.create({
-    url: notifUrl,
-    type: 'popup',
-    width: 450,
-    height: 220,
-    focused: true, // Ép lên trên cùng
-    setSelfAsOpener: true
-  }, (win) => {
-    // Tự động đóng window sau 6 giây
-    if (win && win.id) {
-      setTimeout(() => {
-        chrome.windows.remove(win.id!).catch(() => {});
-      }, 6000);
-    }
-  });
+  // 2. KÍCH HOẠT NHẤP NHÁY TASKBAR (drawAttention)
+  // Gọi API native của HĐH để làm chớp sáng icon trình duyệt dưới thanh Taskbar/Dock
+  if (tabId) {
+    chrome.tabs.get(tabId, (tab) => {
+      if (tab.windowId) {
+        chrome.windows.update(tab.windowId, { drawAttention: true }).catch(() => {});
+      }
+    });
+  } else {
+    chrome.tabs.query({ url: "https://aistudio.google.com/*" }, (tabs) => {
+      const windowIds = new Set(tabs.map(t => t.windowId));
+      windowIds.forEach(winId => {
+        if (winId) chrome.windows.update(winId, { drawAttention: true }).catch(() => {});
+      });
+    });
+  }
 }
 
 // Listen for messages from content script

@@ -34,7 +34,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["src/editor/index.html", "src/notification/index.html"],
+      "resources": ["src/editor/index.html"],
       "matches": ["<all_urls>"]
     }
   ]
